@@ -3,23 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ipstun 测试页面</title>
+  <title>IP 查询指南 - 轻松获取你的 IP 与 IPv6</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <h1>ipstun 测试页面2</h1>
-    <p>Pages 静态页面部署成功！</p>
-    <p>仓库：<a href="https://gitee.com/lluck42/ipstun">gitee.com/lluck42/ipstun</a></p>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="logo" href="index.html">IP 查询指南</a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a class="active" href="index.html">首页</a></li>
+        <li><a href="guide.html">查看教程</a></li>
+        <li><a href="download.html">下载工具</a></li>
+      </ul>
+    </div>
+  </nav>
 
-    <button id="clickBtn" type="button">点我一下</button>
-    <p id="counter">你点击了 0 次</p>
+  <header class="hero">
+    <h1>轻松查看并同步你的 IPv6</h1>
+    <p>不仅帮你快速找到公网 IPv6，还能在运营商重新分配前缀时，自动把最新地址同步到域名或共享出来，让设备之间直接访问。</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="guide.html">查看教程</a>
+      <a class="btn btn-secondary" href="download.html">了解同步工具</a>
+    </div>
+  </header>
 
-    <nav>
-      <a href="index2.html">页面 2</a>
-      <a href="about.html">关于</a>
-    </nav>
-  </div>
+  <main class="container">
+    <section>
+      <h2 class="section-title">为什么需要关注 IPv6？</h2>
+      <p class="lead">IPv4 地址已经接近枯竭，而 IPv6 提供了几乎无限的地址空间，是未来互联网的主流协议。很多家庭宽带其实已经分配了 IPv6，只是你不知道怎么查看。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3>地址更多</h3>
+          <p>IPv6 可以为地球上的每一粒沙子都分配一个独立地址，彻底解决地址不够用的问题。</p>
+        </div>
+        <div class="card">
+          <h3>直连更顺畅</h3>
+          <p>在 IPv6 环境下，设备之间可以更容易地直接通信，不必经过复杂的 NAT 转换。</p>
+        </div>
+        <div class="card">
+          <h3>未来必备</h3>
+          <p>越来越多的网站、云服务和物联网设备默认使用 IPv6，掌握它会让你更懂网络。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">三种常用查询方式</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>在线网站</h3>
+          <p>打开浏览器访问 ip.sb、ip138 或 test-ipv6.com，即可看到当前公网 IP 和 IPv6。</p>
+        </div>
+        <div class="card">
+          <h3>系统命令</h3>
+          <p>Windows 用 ipconfig，macOS / Linux 用 ifconfig 或 ip addr，手机可在 Wi-Fi 详情里查看。</p>
+        </div>
+        <div class="card">
+          <h3>路由器后台</h3>
+          <p>登录家用路由器的管理页面，通常能看到 WAN 口获得的公网 IPv4 和 IPv6 地址。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">即将上线：IPv6 动态同步小工具</h2>
+      <p class="lead">电信/联通/移动的家宽 IPv6 前缀可能会变动，导致你记住的 IPv6 地址突然失效。这款小工具会自动监测本机 IPv6 变化，并实时更新到 DNS 或你指定的接口，让远程设备始终能找到你。</p>
+      <a class="btn btn-primary" href="download.html">了解同步工具</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>如何查看自己的 IP 地址（含 IPv6） | IP 查询指南</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="logo" href="index.html">IP 查询指南</a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a class="active" href="guide.html">查看教程</a></li>
+        <li><a href="download.html">下载工具</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>如何查看自己的 IP 地址</h1>
+    <p>覆盖 Windows、macOS、Linux、手机、路由器与在线工具，重点讲解 IPv6 的获取方法。</p>
+  </header>
+
+  <main class="container article">
+    <section>
+      <h2>一、用浏览器最快查看公网 IP</h2>
+      <p>如果你只想知道自己对外访问互联网时用的 IP（公网 IP），访问下面任意一个网站即可：</p>
+      <ul>
+        <li><a href="https://ip.sb" target="_blank" rel="noopener">ip.sb</a></li>
+        <li><a href="https://www.ip138.com" target="_blank" rel="noopener">ip138.com</a></li>
+        <li><a href="https://www.test-ipv6.com" target="_blank" rel="noopener">test-ipv6.com</a>（专门检测 IPv6）</li>
+      </ul>
+      <div class="info-box">
+        <strong>提示：</strong>如果网站显示了 IPv6 地址，说明你的网络和运营商已经支持 IPv6；如果只显示了 IPv4，可能是路由器或光猫没有开启 IPv6。
+      </div>
+    </section>
+
+    <section>
+      <h2>二、Windows 系统查看 IP 与 IPv6</h2>
+      <h3>方法 1：命令提示符（CMD）</h3>
+      <ol>
+        <li>按 <kbd>Win + R</kbd>，输入 <code>cmd</code>，回车。</li>
+        <li>输入下面命令并回车：</li>
+      </ol>
+      <div class="code-block">
+        <pre><code>ipconfig /all</code></pre>
+      </div>
+      <p>在输出中找到你正在使用的网卡（例如“以太网适配器”或“无线局域网适配器”），你会看到：</p>
+      <ul>
+        <li><strong>IPv4 地址</strong>：通常是 <code>192.168.x.x</code> 或 <code>10.x.x.x</code>，这是内网地址。</li>
+        <li><strong>IPv6 地址</strong>：通常以 <code>240e</code>、<code>2408</code>、<code>2409</code>（国内运营商）或 <code>2xxx:</code> 开头，这是公网 IPv6。</li>
+        <li><strong>临时 IPv6 地址</strong>：Windows 会同时显示“IPv6 地址”和“临时 IPv6 地址”，前者更稳定，后者用于对外发起连接时保护隐私。</li>
+      </ul>
+
+      <h3>方法 2：PowerShell（更简洁）</h3>
+      <div class="code-block">
+        <pre><code>Get-NetIPAddress -AddressFamily IPv6 | Select-Object IPAddress, PrefixLength</code></pre>
+      </div>
+      <p>如果想只看 IPv4，把 <code>IPv6</code> 改成 <code>IPv4</code> 即可。</p>
+    </section>
+
+    <section>
+      <h2>三、macOS 查看 IP 与 IPv6</h2>
+      <h3>方法 1：终端命令</h3>
+      <p>打开“终端”，输入：</p>
+      <div class="code-block">
+        <pre><code>ifconfig</code></pre>
+      </div>
+      <p>找到你当前连接的网络接口（Wi-Fi 通常是 <code>en0</code>，有线通常是 <code>en1</code> 或类似名称），查看 <code>inet</code>（IPv4）和 <code>inet6</code>（IPv6）后面的值。</p>
+
+      <h3>方法 2：图形界面</h3>
+      <ol>
+        <li>点击屏幕左上角苹果菜单 → 系统设置 → 网络。</li>
+        <li>选择当前连接的网络，点击“详细信息”。</li>
+        <li>在 TCP/IP 标签页中即可看到 IPv4 和 IPv6 地址。</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>四、Linux 查看 IP 与 IPv6</h2>
+      <p>大多数现代 Linux 发行版推荐使用 <code>ip</code> 命令：</p>
+      <div class="code-block">
+        <pre><code>ip addr</code></pre>
+      </div>
+      <p>或者使用传统命令：</p>
+      <div class="code-block">
+        <pre><code>ifconfig</code></pre>
+      </div>
+      <p>在输出中：</p>
+      <ul>
+        <li><code>inet</code> 后面是 IPv4 地址。</li>
+        <li><code>inet6</code> 后面是 IPv6 地址。</li>
+        <li>以 <code>fe80:</code> 开头的是“链路本地地址”，只在当前局域网有效，不是公网 IPv6。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>五、手机端查看 IP</h2>
+      <h3>Android</h3>
+      <ol>
+        <li>设置 → WLAN → 点击当前连接的 Wi-Fi 名称。</li>
+        <li>在网络详情里可以看到 IPv4 和 IPv6 地址。</li>
+      </ol>
+      <h3>iOS / iPadOS</h3>
+      <ol>
+        <li>设置 → 无线局域网 → 点击当前 Wi-Fi 右侧的“i”图标。</li>
+        <li>向下滚动即可看到 IPv4 地址和 IPv6 地址。</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>六、从路由器后台查看公网 IP</h2>
+      <ol>
+        <li>在浏览器地址栏输入路由器管理地址，常见的是 <code>192.168.1.1</code>、<code>192.168.31.1</code> 或 <code>tplogin.cn</code> 等品牌地址。</li>
+        <li>登录管理员账号。</li>
+        <li>找到“上网设置 / WAN 口设置 / 网络状态”，即可看到路由器获取到的公网 IPv4 和 IPv6。</li>
+      </ol>
+      <div class="info-box warning">
+        <strong>注意：</strong>很多家用宽带拿到的是“运营商级 NAT（大内网）IPv4”，并不是真正的公网 IPv4，但 IPv6 通常是直接分配到设备的公网地址。
+      </div>
+    </section>
+
+    <section>
+      <h2>七、如何判断看到的是不是真正的公网 IPv6？</h2>
+      <ul>
+        <li><strong>公网 IPv6</strong>：通常以 <code>2xxx:</code> 或 <code>3xxx:</code> 开头，可以在外网直接访问（配合防火墙设置）。</li>
+        <li><strong>链路本地 IPv6</strong>：以 <code>fe80:</code> 开头，只在当前网段内有效，不是公网地址。</li>
+        <li><strong>唯一本地地址</strong>：以 <code>fd00:</code> 开头，类似 IPv4 的内网地址，也不对外。</li>
+      </ul>
+      <p>最简单的方法：用浏览器访问 <a href="https://www.test-ipv6.com" target="_blank" rel="noopener">test-ipv6.com</a>，它会自动告诉你当前连接的公网 IPv6 是多少。</p>
+    </section>
+
+    <section>
+      <h2>八、安全与隐私提示</h2>
+      <ul>
+        <li>公网 IPv6 可能直接暴露你的设备，建议开启系统防火墙，不要随意对外暴露服务端口。</li>
+        <li>在公开场合分享自己的 IP 截图时，建议打码处理。</li>
+        <li>Windows 默认会启用“临时 IPv6 地址”对外通信，能在一定程度上保护隐私。</li>
+      </ul>
+    </section>
+
+    <section id="ddns">
+      <h2>十、IPv6 地址变了怎么办？动态前缀与 DDNS</h2>
+      <p>很多家庭宽带的 IPv6 前缀不是永久固定的。运营商可能会定期重新分配前缀（Prefix），比如从 <code>240e:123:456::/60</code> 变成 <code>240e:123:789::/60</code>，一旦变了，你记住的 IPv6 地址就会失效。</p>
+
+      <h3>为什么前缀会变？</h3>
+      <ul>
+        <li>运营商为了地址管理、负载均衡或安全策略，会周期性刷新前缀。</li>
+        <li>光猫或路由器重启后，重新拨号时也可能拿到新的前缀。</li>
+        <li>国内三大运营商的家宽通常不会承诺固定 IPv6 前缀。</li>
+      </ul>
+
+      <h3>解决方案：DDNS（动态域名解析）</h3>
+      <p>与其记一长串 IPv6 地址，不如给设备绑定一个域名。当 IPv6 变化时，自动更新这个域名对应的 DNS 记录，这样你始终可以通过同一个域名访问设备。</p>
+      <ol>
+        <li>准备一个域名，并在 DNS 服务商（如 Cloudflare、阿里云、腾讯云、DNSPod）创建一条 AAAA 记录。</li>
+        <li>在设备上运行一个 DDNS 客户端，定期检查当前 IPv6。</li>
+        <li>发现变化后，调用 DNS 服务商的 API 更新 AAAA 记录。</li>
+        <li>外网访问时直接输入域名，无需关心底层 IPv6 是否改变。</li>
+      </ol>
+
+      <div class="info-box">
+        <strong>提示：</strong>如果你不想自己写脚本，可以等本站即将发布的 <a href="download.html">IPv6 动态同步助手</a>。它会自动监测本机 IPv6 变化并更新到 DNS，省去手动维护的麻烦。
+      </div>
+    </section>
+
+    <section>
+      <h2>十一、想要更方便？</h2>
+      <p>如果你觉得每次查命令太麻烦，或者不想手动维护 DDNS，可以关注我即将发布的小工具：</p>
+      <a class="btn btn-primary" href="download.html">查看同步工具</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

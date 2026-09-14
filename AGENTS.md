@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-`ipstun` 是一个计划用于承载“ipstun 科普教程”的仓库。目前仓库处于初始阶段，仅包含 Gitee 生成的默认 README 模板文件和 MIT 许可证，尚未包含任何源代码、构建配置或测试。
+`ipstun` 是一个计划用于承载“ipstun 科普教程”的仓库。目前已建成一个基于 Cloudflare Pages + Pages Functions 的站点，前端科普如何查看自己的 IP 地址（尤其是 IPv6），后端通过 Cloudflare KV 提供简单的 IPv6 地址上报与查询接口，并预留了一个 Windows 小工具的下载页面。小工具计划解决“家宽 IPv6 前缀动态变化”的问题：实时监测本机 IPv6 并上报到本站后端，让外网设备始终能通过本站查询到最新地址。站点前端由纯 HTML / CSS / JavaScript 编写，后端由 Cloudflare Pages Functions 提供。
 
 - 项目名称：ipstun
 - 仓库地址：`git@gitee.com:lluck42/ipstun.git`
@@ -14,53 +14,84 @@
 
 ```
 .
-├── LICENSE          # MIT 许可证
-├── README.en.md     # 英文版 README（模板内容）
-└── README.md        # 中文版 README（模板内容）
+├── index.html                        # 站点首页：IP / IPv6 科普入口
+├── guide.html                        # 详细教程：各平台查看 IP 与 IPv6 的方法
+├── download.html                     # 小工具下载页（软件尚未发布，当前为占位）
+├── style.css                         # 站点共用样式
+├── script.js                         # 导航与代码块复制功能
+├── functions/                        # Cloudflare Pages Functions（后端接口）
+│   └── api/
+│       ├── report.js                 # POST /api/report：接收 IPv6 上报
+│       └── devices/
+│           └── [id].js               # GET /api/devices/:id：查询设备最新 IPv6
+├── wrangler.toml                     # Cloudflare 部署与 KV 绑定配置
+├── package.json                      # 开发依赖与部署脚本
+├── .gitignore                        # Git 忽略规则
+├── LICENSE                           # MIT 许可证
+├── README.en.md                      # 英文版 README（模板内容）
+└── README.md                         # 中文版 README（模板内容）
 ```
 
-两个 README 文件目前均为占位符文本，未描述具体的项目功能、架构或安装步骤。
+两个 README 文件目前仍为占位符文本，未描述具体的项目功能、架构或安装步骤。网站页面已具备实际内容，但小软件尚未开发完成。
 
 ## 技术栈与架构
 
-**尚未确定。** 仓库中没有 `pyproject.toml`、`package.json`、`Cargo.toml`、`pom.xml`、`go.mod`、`CMakeLists.txt` 或其他任何语言/框架的构建配置文件，也没有任何源代码目录或模块划分。
+当前站点为 Cloudflare Pages + Pages Functions 全栈应用。
 
-后续引入技术栈时，应在此节补充：
-
-- 编程语言与运行时版本
-- 主要依赖与框架
-- 目录结构与模块职责
-- 运行时架构图或服务边界
+- 前端：HTML5、CSS3、原生 JavaScript（ES6），位于仓库根目录
+- 后端：Cloudflare Pages Functions（基于 Workers 运行时的服务端函数），位于 `functions/`
+- 数据存储：Cloudflare KV，用于存储每个设备最新的 IPv6 地址
+- 部署平台：Cloudflare Pages（静态资源 + Functions 一起部署）
+- 本地开发：`wrangler pages dev .`
+- 小工具：计划为 Windows 桌面程序，核心功能是“IPv6 地址监测 + 上报到本站后端”。技术栈待定（如 C# / Python / Go 等），开发完成后会把可执行文件或下载链接更新到 `download.html`
 
 ## 构建与运行
 
-**当前无可用命令。** 因为不存在源码和构建配置，无法执行编译、安装或运行操作。
+### 本地开发
 
-后续根据选择的技术栈，常见的入口命令可能包括：
+1. 安装依赖（首次）：
+   ```bash
+   npm install
+   ```
+2. 本地预览（含 Functions 接口）：
+   ```bash
+   npm run dev
+   ```
+   默认打开 `http://localhost:8787`。
 
-- Python：`pip install -r requirements.txt && python -m ipstun`
-- Node.js：`npm install && npm start`
-- Rust：`cargo build && cargo run`
-- Go：`go build && ./ipstun`
+### 部署到 Cloudflare Pages
+
+1. 确保已在 Cloudflare Dashboard 创建 KV 命名空间，并把 ID 填入 `wrangler.toml`。
+2. 执行：
+   ```bash
+   npm run deploy
+   ```
+3. 部署成功后，静态页面和 `/api/*` 接口会同时上线。
+
+> 注意：`wrangler.toml` 中的 KV ID 是占位符，实际部署前必须替换。KV namespace ID 本身不是敏感信息，但建议不要把生产 API Token 写入仓库。
+
+后续如果开发了 Windows 小工具，建议把二进制文件或压缩包放到仓库的 `releases/` 或 `download/` 目录，并在 `download.html` 中更新下载链接。
 
 ## 测试策略
 
-**当前无测试。** 仓库中没有单元测试、集成测试或持续工作流配置。
+静态网站目前以手动预览为主，没有自动化测试。后续如果引入 JavaScript 工具函数或 Windows 小工具，再补充对应测试：
 
-建议在添加首批代码时同步建立测试：
-
-1. 选择项目对应的测试框架并写入依赖配置。
-2. 为核心功能编写单元测试。
-3. 在 CI 中运行测试，确保每次提交都通过。
+- 前端：可使用 Playwright 或简单的链接检查脚本验证页面可访问性。
+- 小工具：根据最终技术栈选择单元测试框架（如 .NET 的 xUnit、Python 的 pytest、Go 的 testing 等）。
 
 ## 代码风格与开发约定
 
-**尚未制定。** 建议在确定技术栈后补充：
+静态站点部分：
 
-- 代码格式化工具（如 `black`、`prettier`、`rustfmt` 等）
-- 静态检查工具（如 `ruff`、`eslint`、`clippy` 等）
-- 提交信息规范
-- 分支模型（当前 README 提到使用 `Feat_xxx` 分支）
+- 使用语义化 HTML5 标签（`nav`、`header`、`main`、`section`、`footer` 等）。
+- CSS 使用原生变量（`--*`）统一主题色，避免过度嵌套。
+- JavaScript 使用原生 ES6，不引入第三方框架，保持轻量。
+- 页面链接使用相对路径，确保在 Gitee Pages / GitHub Pages 根目录部署时正常工作。
+
+小工具部分：
+
+- 待确定具体技术栈后再制定格式化、静态检查与提交信息规范。
+- 分支模型参考 README 说明：功能开发使用 `Feat_xxx` 分支。
 
 ## 参与贡献
 
@@ -73,9 +104,11 @@
 
 ## 安全注意事项
 
-- 当前仓库没有可运行的代码，也没有存储任何凭证或敏感信息。
+- 当前仓库没有存储任何凭证或敏感信息；`wrangler.toml` 中的 KV ID 仅为资源标识符，API Token 等 Secrets 不应写入仓库。
+- `script.js` 仅实现导航与代码块复制功能，不收集、不上传用户数据。
 - 后续开发中请勿将 `.env`、私钥、密码、令牌等敏感文件提交到仓库。
-- 建议在仓库中配置 `.gitignore`，避免提交临时文件、依赖目录和本地配置。
+- 仓库已配置 `.gitignore`，避免提交 `node_modules`、`.wrangler`、本地配置以及 Windows 小工具的构建产物。
+- KV 中存储的是用户设备的 IPv6 地址，虽然属于网络层信息，但仍应注意隐私保护：接口应带 Token 鉴权，避免公开暴露他人地址。
 
 ## 给后续 AI 编码助手的提示
 

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>下载 IPv6 动态同步助手 | IP 查询指南</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="logo" href="index.html">IP 查询指南</a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="guide.html">查看教程</a></li>
+        <li><a class="active" href="download.html">下载工具</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>IPv6 动态同步助手</h1>
+    <p>实时监测本机 IPv6 地址变化，自动更新到 DNS 或共享接口，防止运营商前缀变动导致失联。</p>
+  </header>
+
+  <main class="container">
+    <section class="card" style="max-width: 640px; margin: 0 auto 2rem;">
+      <h2 class="section-title" style="margin-top: 0;">工具介绍</h2>
+      <p>这是一款为 Windows 设计的轻量级小工具，专门解决“家宽 IPv6 前缀会变”的问题。它会在后台监测你选中的网卡，一旦发现全球单播 IPv6 地址发生变化，就自动把它更新到域名解析（DDNS）或你指定的 HTTP 接口，让外网设备始终能通过同一个域名或链接找到你。</p>
+
+      <h3 style="margin-top: 1.5rem;">计划功能</h3>
+      <ul>
+        <li>自动识别并选择本机网卡，过滤出真正的公网 IPv6 地址</li>
+        <li>定时检测 IPv6 变化，变化后立即触发更新</li>
+        <li>支持常见 DNS 服务商 API（Cloudflare、阿里云、腾讯云、DNSPod 等）</li>
+        <li>支持自定义 Webhook / HTTP 接口，把最新地址推送到自己的服务器</li>
+        <li>可选最小化到系统托盘，开机自启</li>
+        <li>本地日志记录，方便排查同步失败问题</li>
+      </ul>
+
+      <h3 style="margin-top: 1.5rem;">适用场景</h3>
+      <ul>
+        <li>远程访问家里的 NAS、树莓派、Windows 远程桌面</li>
+        <li>两台设备之间直接建立 P2P 连接，无需中转服务器</li>
+        <li>把动态 IPv6 绑定到固定域名，分享给朋友或自用</li>
+      </ul>
+
+      <h3 style="margin-top: 1.5rem;">系统要求</h3>
+      <ul>
+        <li>操作系统：Windows 10 / Windows 11</li>
+        <li>网络：已开启并分配公网 IPv6 的家宽网络</li>
+        <li>需要一个已配置好的域名或自建接收接口</li>
+        <li>体积：预计小于 10 MB</li>
+      </ul>
+
+      <h3 style="margin-top: 1.5rem;">下载</h3>
+      <p>小软件目前还在开发中，暂时无法下载。上线后我会把安装包放在这里。</p>
+      <button class="btn btn-disabled" type="button" disabled>Windows 版下载（即将上线）</button>
+
+      <div class="info-box" style="margin-top: 1.5rem;">
+        <strong>等不及？</strong> 你可以先按照 <a href="guide.html">详细教程</a> 里的方法查看自己的 IPv6，并了解 <a href="guide.html#ddns">动态前缀与 DDNS</a> 的应对方案。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
