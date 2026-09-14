@@ -6,7 +6,7 @@ export async function onRequestGet(context) {
     return new Response('not found', { status: 404 });
   }
 
-  const data = await env.IPSTUN_KV.get(deviceId);
+  const data = await env['user-device'].get(deviceId);
 
   if (!data) {
     return new Response('not found', { status: 404 });

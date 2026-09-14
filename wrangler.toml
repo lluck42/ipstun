@@ -2,5 +2,5 @@ name = "ipstun"
 pages_build_output_dir = "."
 
 [[kv_namespaces]]
-binding = "IPSTUN_KV"
+binding = "user-device"
 id = "<你的KV命名空间ID>"

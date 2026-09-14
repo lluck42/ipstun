@@ -18,7 +18,7 @@ export async function onRequestPost(context) {
       updated_at: Date.now()
     });
 
-    await env.IPSTUN_KV.put(device_id, payload);
+    await env['user-device'].put(device_id, payload);
 
     return Response.json({ ok: true });
   } catch (err) {

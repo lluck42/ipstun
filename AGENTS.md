@@ -40,7 +40,7 @@
 
 - 前端：HTML5、CSS3、原生 JavaScript（ES6），位于仓库根目录
 - 后端：Cloudflare Pages Functions（基于 Workers 运行时的服务端函数），位于 `functions/`
-- 数据存储：Cloudflare KV，用于存储每个设备最新的 IPv6 地址
+- 数据存储：Cloudflare KV（绑定变量名为 `user-device`），用于存储每个设备最新的 IPv6 地址
 - 部署平台：Cloudflare Pages（静态资源 + Functions 一起部署）
 - 本地开发：`wrangler pages dev .`
 - 小工具：计划为 Windows 桌面程序，核心功能是“IPv6 地址监测 + 上报到本站后端”。技术栈待定（如 C# / Python / Go 等），开发完成后会把可执行文件或下载链接更新到 `download.html`
@@ -68,7 +68,7 @@
    ```
 3. 部署成功后，静态页面和 `/api/*` 接口会同时上线。
 
-> 注意：`wrangler.toml` 中的 KV ID 是占位符，实际部署前必须替换。KV namespace ID 本身不是敏感信息，但建议不要把生产 API Token 写入仓库。
+> 注意：`wrangler.toml` 中的 KV ID 是占位符，实际部署前必须替换。代码中通过 `env['user-device']` 访问 KV，因此 Cloudflare Pages 里的 KV binding 名称也必须是 `user-device`。KV namespace ID 本身不是敏感信息，但建议不要把生产 API Token 写入仓库。
 
 后续如果开发了 Windows 小工具，建议把二进制文件或压缩包放到仓库的 `releases/` 或 `download/` 目录，并在 `download.html` 中更新下载链接。
 
