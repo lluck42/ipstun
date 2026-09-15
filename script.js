@@ -208,8 +208,6 @@
     statusBadgeHtml
   };
 
-  const MASKED_KEY = '••••••••-••••-••••-••••-••••••••••••';
-
   function renderDeviceKey(deviceKey) {
     if (!deviceKeyDisplay || !deviceKeyValue || !deviceKeyQrcode) return;
 
@@ -218,7 +216,7 @@
 
     deviceKeyDisplay.classList.remove('hidden');
     deviceKeyValue.dataset.key = key;
-    deviceKeyValue.textContent = MASKED_KEY;
+    deviceKeyValue.textContent = key;
     deviceKeyQrcode.innerHTML = '';
     // eslint-disable-next-line no-undef
     new QRCode(deviceKeyQrcode, {
@@ -260,21 +258,6 @@
         }, 1500);
       } catch (err) {
         copyShareLinkBtn.textContent = '复制失败';
-      }
-    });
-  }
-
-  // Toggle device key visibility
-  const toggleDeviceKeyBtn = document.getElementById('toggle-device-key');
-  if (toggleDeviceKeyBtn && deviceKeyValue) {
-    toggleDeviceKeyBtn.addEventListener('click', () => {
-      const isMasked = deviceKeyValue.textContent === MASKED_KEY;
-      if (isMasked) {
-        deviceKeyValue.textContent = deviceKeyValue.dataset.key || '';
-        toggleDeviceKeyBtn.textContent = '隐藏';
-      } else {
-        deviceKeyValue.textContent = MASKED_KEY;
-        toggleDeviceKeyBtn.textContent = '显示';
       }
     });
   }
@@ -368,44 +351,36 @@
   }
 
   // Check my public IP
-  function bindCheckMyIp(buttonId, resultId, contentId, autoTrigger) {
-    const checkMyIpBtn = document.getElementById(buttonId);
+  async function checkMyIp(resultId, contentId) {
     const myipResult = document.getElementById(resultId);
     const myipResultContent = document.getElementById(contentId);
+    if (!myipResult || !myipResultContent) return;
 
-    if (checkMyIpBtn && myipResult && myipResultContent) {
-      checkMyIpBtn.addEventListener('click', async () => {
-        myipResult.classList.remove('hidden');
-        myipResultContent.innerHTML = '<p class="empty">检测中...</p>';
+    myipResult.classList.remove('hidden');
+    myipResultContent.innerHTML = '<p class="empty">检测中...</p>';
 
-        try {
-          const response = await fetch('/api/myip');
-          if (!response.ok) {
-            myipResultContent.innerHTML = `<p class="error">检测失败（状态码 ${response.status}）</p>`;
-            return;
-          }
-
-          const data = await response.json();
-          myipResultContent.innerHTML = `
-            <dl>
-              <dt>公网 IP</dt><dd>${escapeHtml(data.ip)} ${copyButtonHtml(data.ip)}</dd>
-              <dt>协议版本</dt><dd>${escapeHtml(data.version)}</dd>
-            </dl>
-            <p class="empty" style="margin-top:0.75rem">如果你看到的是 IPv6，说明当前网络支持 IPv6。</p>
-          `;
-        } catch (err) {
-          myipResultContent.innerHTML = `<p class="error">检测出错：${escapeHtml(err.message)}</p>`;
-        }
-      });
-
-      if (autoTrigger) {
-        checkMyIpBtn.click();
+    try {
+      const response = await fetch('/api/myip');
+      if (!response.ok) {
+        myipResultContent.innerHTML = `<p class="error">检测失败（状态码 ${response.status}）</p>`;
+        return;
       }
+
+      const data = await response.json();
+      myipResultContent.innerHTML = `
+        <dl>
+          <dt>公网 IP</dt><dd>${escapeHtml(data.ip)} ${copyButtonHtml(data.ip)}</dd>
+          <dt>协议版本</dt><dd>${escapeHtml(data.version)}</dd>
+        </dl>
+        <p class="empty" style="margin-top:0.75rem">如果你看到的是 IPv6，说明当前网络支持 IPv6。</p>
+      `;
+    } catch (err) {
+      myipResultContent.innerHTML = `<p class="error">检测出错：${escapeHtml(err.message)}</p>`;
     }
   }
 
-  bindCheckMyIp('check-my-ip', 'myip-result', 'myip-result-content');
-  bindCheckMyIp('hero-check-my-ip', 'hero-myip-result', 'hero-myip-result-content', true);
+  // Hero area: auto-check on page load
+  checkMyIp('hero-myip-result', 'hero-myip-result-content');
 
   // Browser-side IP monitor
   const monitorForm = document.getElementById('monitor-form');

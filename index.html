@@ -34,10 +34,6 @@
   <header class="hero hero-centered">
     <h1>让设备之间实时找到彼此</h1>
     <p>通过 IPv6 与本站同步服务，随时随地获取你任意设备当前的外网 IP。手机、电脑、NAS，扫码即可直连。</p>
-    <div class="hero-actions hero-actions-row">
-      <button type="button" id="hero-check-my-ip" class="btn btn-primary btn-large">查看本机 IP</button>
-      <a class="btn btn-secondary" href="how-it-works.html">这是什么原理？</a>
-    </div>
     <div id="hero-myip-result" class="query-result hidden" style="margin-top: 1.5rem; text-align: left;">
       <h3>当前连接信息</h3>
       <div id="hero-myip-result-content"></div>
@@ -73,8 +69,7 @@
           <div class="key-row">
             <label>device_key（查询和更新都用它，请勿泄露）</label>
             <div class="key-value-wrap">
-              <code id="device-key-value" data-key="">••••••••-••••-••••-••••-••••••••••••</code>
-              <button type="button" id="toggle-device-key" class="btn btn-secondary btn-sm">显示</button>
+              <code id="device-key-value" data-key=""></code>
               <button type="button" id="copy-device-key" class="btn btn-secondary btn-sm">复制</button>
             </div>
           </div>

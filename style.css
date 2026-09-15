@@ -166,17 +166,6 @@ a:hover {
   opacity: 0.92;
 }
 
-.hero-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: stretch;
-}
-
-.hero-actions .btn {
-  width: 100%;
-}
-
 .hero-centered {
   display: flex;
   flex-direction: column;
@@ -189,22 +178,6 @@ a:hover {
 
 .hero-centered p {
   max-width: 520px;
-}
-
-.hero-actions-row {
-  flex-direction: row;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.hero-actions-row .btn {
-  width: auto;
-  min-width: 160px;
-}
-
-.btn-large {
-  padding: 1rem 2rem;
-  font-size: 1.15rem;
 }
 
 /* Buttons */
@@ -378,17 +351,19 @@ a:hover {
   margin-left: 0.5rem;
   padding: 0.2rem 0.5rem;
   font-size: 0.75rem;
-  background: var(--bg);
+  background: #fff;
   border: 1px solid var(--border);
   border-radius: 6px;
-  color: var(--muted);
+  color: var(--primary);
   cursor: pointer;
   vertical-align: middle;
+  font-weight: 500;
 }
 
 .copy-btn-inline:hover {
-  background: var(--border);
-  color: var(--text);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
 }
 
 .copy-btn-inline.copied {
