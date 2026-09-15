@@ -94,14 +94,19 @@
           ? new Date(data.updated_at).toLocaleString('zh-CN')
           : '未知';
 
+        const status = getDeviceStatus(data.updated_at);
         queryResultContent.innerHTML = `
           <dl>
             <dt>设备名</dt><dd>${escapeHtml(deviceName)}</dd>
             <dt>device_key</dt><dd>${escapeHtml(data.device_key || deviceKey)} ${copyButtonHtml(data.device_key || deviceKey)}</dd>
+            <dt>状态</dt><dd>${statusBadgeHtml(status)}</dd>
             <dt>IPv6</dt><dd>${escapeHtml(ipv6)} ${copyButtonHtml(ipv6)}</dd>
             <dt>IPv4</dt><dd>${escapeHtml(ipv4)} ${copyButtonHtml(ipv4)}</dd>
             <dt>更新时间</dt><dd>${escapeHtml(updatedAt)}</dd>
           </dl>
+          <div class="query-actions" style="margin-top: 1rem;">
+            <button type="button" class="btn btn-secondary btn-sm save-device" data-key="${escapeHtml(data.device_key || deviceKey)}" data-name="${escapeHtml(deviceName)}">保存到我的设备</button>
+          </div>
         `;
       } catch (err) {
         queryResultContent.innerHTML = `<p class="error">查询出错：${escapeHtml(err.message)}</p>`;
@@ -116,6 +121,10 @@
       if (sharedInput) {
         sharedInput.value = sharedDeviceKey;
         queryForm.dispatchEvent(new Event('submit'));
+        // 清理 URL，避免刷新重复触发
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, '', window.location.pathname);
+        }
       }
     }
   }
@@ -194,8 +203,12 @@
 
   window.ipstunUi = {
     escapeHtml,
-    copyButtonHtml
+    copyButtonHtml,
+    getDeviceStatus,
+    statusBadgeHtml
   };
+
+  const MASKED_KEY = '••••••••-••••-••••-••••-••••••••••••';
 
   function renderDeviceKey(deviceKey) {
     if (!deviceKeyDisplay || !deviceKeyValue || !deviceKeyQrcode) return;
@@ -204,7 +217,8 @@
     const shareUrl = `${window.location.origin}/?device_key=${encodeURIComponent(key)}`;
 
     deviceKeyDisplay.classList.remove('hidden');
-    deviceKeyValue.textContent = key;
+    deviceKeyValue.dataset.key = key;
+    deviceKeyValue.textContent = MASKED_KEY;
     deviceKeyQrcode.innerHTML = '';
     // eslint-disable-next-line no-undef
     new QRCode(deviceKeyQrcode, {
@@ -228,6 +242,58 @@
   if (regenerateKeyBtn) {
     regenerateKeyBtn.addEventListener('click', () => {
       renderDeviceKey();
+    });
+  }
+
+  // Copy share link button
+  const copyShareLinkBtn = document.getElementById('copy-share-link');
+  if (copyShareLinkBtn) {
+    copyShareLinkBtn.addEventListener('click', async () => {
+      const key = getDeviceKey();
+      if (!key) return;
+      const shareUrl = `${window.location.origin}/?device_key=${encodeURIComponent(key)}`;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        copyShareLinkBtn.textContent = '已复制';
+        setTimeout(() => {
+          copyShareLinkBtn.textContent = '复制分享链接';
+        }, 1500);
+      } catch (err) {
+        copyShareLinkBtn.textContent = '复制失败';
+      }
+    });
+  }
+
+  // Toggle device key visibility
+  const toggleDeviceKeyBtn = document.getElementById('toggle-device-key');
+  if (toggleDeviceKeyBtn && deviceKeyValue) {
+    toggleDeviceKeyBtn.addEventListener('click', () => {
+      const isMasked = deviceKeyValue.textContent === MASKED_KEY;
+      if (isMasked) {
+        deviceKeyValue.textContent = deviceKeyValue.dataset.key || '';
+        toggleDeviceKeyBtn.textContent = '隐藏';
+      } else {
+        deviceKeyValue.textContent = MASKED_KEY;
+        toggleDeviceKeyBtn.textContent = '显示';
+      }
+    });
+  }
+
+  // Copy device key button
+  const copyDeviceKeyBtn = document.getElementById('copy-device-key');
+  if (copyDeviceKeyBtn && deviceKeyValue) {
+    copyDeviceKeyBtn.addEventListener('click', async () => {
+      const key = deviceKeyValue.dataset.key || '';
+      if (!key) return;
+      try {
+        await navigator.clipboard.writeText(key);
+        copyDeviceKeyBtn.textContent = '已复制';
+        setTimeout(() => {
+          copyDeviceKeyBtn.textContent = '复制';
+        }, 1500);
+      } catch (err) {
+        copyDeviceKeyBtn.textContent = '复制失败';
+      }
     });
   }
 
@@ -414,6 +480,18 @@
     return `<button type="button" class="copy-btn-inline" data-copy="${escapeHtml(text)}" aria-label="复制">${label || '复制'}</button>`;
   }
 
+  function getDeviceStatus(updatedAt) {
+    if (!updatedAt) return { label: '未知', className: 'status-unknown' };
+    const diff = Date.now() - new Date(updatedAt).getTime();
+    if (diff < 2 * 60 * 1000) return { label: '在线', className: 'status-online' };
+    if (diff < 10 * 60 * 1000) return { label: '最近在线', className: 'status-recent' };
+    return { label: '离线', className: 'status-offline' };
+  }
+
+  function statusBadgeHtml(status) {
+    return `<span class="status-badge ${escapeHtml(status.className)}">${escapeHtml(status.label)}</span>`;
+  }
+
   // Delegated copy buttons for inline values
   document.addEventListener('click', async (event) => {
     const button = event.target.closest('.copy-btn-inline');
@@ -450,5 +528,26 @@
       }
       document.body.removeChild(textarea);
     }
+  });
+
+  // Delegated save-to-devices button
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('.save-device');
+    if (!button) return;
+
+    const key = button.dataset.key || '';
+    const name = button.dataset.name || key.slice(0, 8);
+    if (!key) return;
+
+    const storage = window.ipstunStorage;
+    if (!storage) return;
+
+    const added = storage.addDevice(key, name);
+    button.textContent = added ? '已保存' : '已存在';
+    button.disabled = true;
+    setTimeout(() => {
+      button.textContent = '保存到我的设备';
+      button.disabled = false;
+    }, 1500);
   });
 })();

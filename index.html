@@ -72,10 +72,17 @@
         <div id="device-key-display" class="device-key-display hidden">
           <div class="key-row">
             <label>device_key（查询和更新都用它，请勿泄露）</label>
-            <code id="device-key-value"></code>
+            <div class="key-value-wrap">
+              <code id="device-key-value" data-key="">••••••••-••••-••••-••••-••••••••••••</code>
+              <button type="button" id="toggle-device-key" class="btn btn-secondary btn-sm">显示</button>
+              <button type="button" id="copy-device-key" class="btn btn-secondary btn-sm">复制</button>
+            </div>
           </div>
           <div id="device-key-qrcode" class="qrcode-container"></div>
-          <p class="empty">扫码即可从其他设备查询本机实时 IP。</p>
+          <div class="share-actions">
+            <button type="button" id="copy-share-link" class="btn btn-secondary btn-sm">复制分享链接</button>
+          </div>
+          <p class="empty">扫码或复制链接，即可从其他设备查询本机实时 IP。</p>
         </div>
 
         <form id="monitor-form">

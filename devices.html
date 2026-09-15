@@ -177,6 +177,8 @@
           const ipv4 = data.ipv4 || '无';
           const updatedAt = data.updated_at ? new Date(data.updated_at).toLocaleString('zh-CN') : '未知';
           const ago = formatTime(data.updated_at);
+          const status = ui ? ui.getDeviceStatus(data.updated_at) : { label: '未知', className: 'status-unknown' };
+          const statusBadge = ui ? ui.statusBadgeHtml(status) : '';
 
           if (card) {
             card.querySelector('.device-status').textContent = `最近更新：${ago}`;
@@ -187,6 +189,7 @@
             <dl>
               <dt>设备名</dt><dd>${escapeHtml(data.device_name || key.slice(0, 8))}</dd>
               <dt>device_key</dt><dd>${escapeHtml(data.device_key || key)} ${ui ? ui.copyButtonHtml(data.device_key || key) : ''}</dd>
+              <dt>状态</dt><dd>${statusBadge}</dd>
               <dt>IPv6</dt><dd>${escapeHtml(ipv6)} ${ui ? ui.copyButtonHtml(ipv6) : ''}</dd>
               <dt>IPv4</dt><dd>${escapeHtml(ipv4)} ${ui ? ui.copyButtonHtml(ipv4) : ''}</dd>
               <dt>更新时间</dt><dd>${escapeHtml(updatedAt)} (${ago})</dd>

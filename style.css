@@ -368,6 +368,49 @@ a:hover {
   color: #166534;
 }
 
+.status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.status-online {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-recent {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.status-offline {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-unknown {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.share-actions {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.query-actions {
+  margin-top: 1rem;
+}
+
+.btn-sm {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+}
+
 /* Info box */
 .info-box {
   background: #eff6ff;
@@ -498,6 +541,20 @@ a:hover {
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   font-size: 0.9rem;
+}
+
+.key-value-wrap {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.key-value-wrap code {
+  flex: 1;
+}
+
+.key-value-wrap .btn-sm {
+  flex-shrink: 0;
 }
 
 .device-key-display {
