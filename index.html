@@ -11,8 +11,9 @@
   <meta property="og:description" content="通过 IPv6 实时同步你的设备外网 IP，让手机、电脑、NAS 之间直接找到彼此。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.ipstun.cn/">
-  <meta property="og:site_name" content="IP 查询指南">
+  <meta property="og:site_name" content="ipstun">
   <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -45,20 +46,21 @@
 
   <main class="container">
     <section>
-      <h2 class="section-title">为什么需要关注 IPv6？</h2>
-      <p class="lead">IPv4 地址已经接近枯竭，而 IPv6 提供了几乎无限的地址空间，是未来互联网的主流协议。很多家庭宽带其实已经分配了 IPv6，只是你不知道怎么查看。</p>
-      <div class="card-grid">
-        <div class="card">
-          <h3>地址更多</h3>
-          <p>IPv6 可以为地球上的每一粒沙子都分配一个独立地址，彻底解决地址不够用的问题。</p>
-        </div>
-        <div class="card">
-          <h3>直连更顺畅</h3>
-          <p>在 IPv6 环境下，设备之间可以更容易地直接通信，不必经过复杂的 NAT 转换。</p>
-        </div>
-        <div class="card">
-          <h3>未来必备</h3>
-          <p>越来越多的网站、云服务和物联网设备默认使用 IPv6，掌握它会让你更懂网络。</p>
+      <h2 class="section-title">查询已同步设备的 IP</h2>
+      <p class="lead">如果你已经在某台设备上运行了同步工具或浏览器监听，只要输入设备的 device_key，就能查看它当前的 IPv6 / IPv4 地址。也可以直接扫描二维码。</p>
+      <div class="card">
+        <form id="query-form">
+          <div class="form-group">
+            <label for="query-device-key">设备 device_key</label>
+            <input type="text" id="query-device-key" name="device_key" placeholder="例如：a1b2c3d4-..." required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">查询 IP</button>
+          </div>
+        </form>
+        <div id="query-result" class="query-result hidden">
+          <h3>查询结果</h3>
+          <div id="query-result-content"></div>
         </div>
       </div>
     </section>
@@ -96,21 +98,20 @@
     </section>
 
     <section>
-      <h2 class="section-title">查询已同步设备的 IP</h2>
-      <p class="lead">如果你已经在某台设备上运行了同步工具或浏览器监听，只要输入设备的 device_key，就能查看它当前的 IPv6 / IPv4 地址。也可以直接扫描二维码。</p>
-      <div class="card">
-        <form id="query-form">
-          <div class="form-group">
-            <label for="query-device-key">设备 device_key</label>
-            <input type="text" id="query-device-key" name="device_key" placeholder="例如：a1b2c3d4-..." required>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">查询 IP</button>
-          </div>
-        </form>
-        <div id="query-result" class="query-result hidden">
-          <h3>查询结果</h3>
-          <div id="query-result-content"></div>
+      <h2 class="section-title">为什么需要关注 IPv6？</h2>
+      <p class="lead">IPv4 地址已经接近枯竭，而 IPv6 提供了几乎无限的地址空间，是未来互联网的主流协议。很多家庭宽带其实已经分配了 IPv6，只是你不知道怎么查看。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3>地址更多</h3>
+          <p>IPv6 可以为地球上的每一粒沙子都分配一个独立地址，彻底解决地址不够用的问题。</p>
+        </div>
+        <div class="card">
+          <h3>直连更顺畅</h3>
+          <p>在 IPv6 环境下，设备之间可以更容易地直接通信，不必经过复杂的 NAT 转换。</p>
+        </div>
+        <div class="card">
+          <h3>未来必备</h3>
+          <p>越来越多的网站、云服务和物联网设备默认使用 IPv6，掌握它会让你更懂网络。</p>
         </div>
       </div>
     </section>

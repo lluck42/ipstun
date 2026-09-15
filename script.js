@@ -97,9 +97,9 @@
         queryResultContent.innerHTML = `
           <dl>
             <dt>设备名</dt><dd>${escapeHtml(deviceName)}</dd>
-            <dt>device_key</dt><dd>${escapeHtml(data.device_key || deviceKey)}</dd>
-            <dt>IPv6</dt><dd>${escapeHtml(ipv6)}</dd>
-            <dt>IPv4</dt><dd>${escapeHtml(ipv4)}</dd>
+            <dt>device_key</dt><dd>${escapeHtml(data.device_key || deviceKey)} ${copyButtonHtml(data.device_key || deviceKey)}</dd>
+            <dt>IPv6</dt><dd>${escapeHtml(ipv6)} ${copyButtonHtml(ipv6)}</dd>
+            <dt>IPv4</dt><dd>${escapeHtml(ipv4)} ${copyButtonHtml(ipv4)}</dd>
             <dt>更新时间</dt><dd>${escapeHtml(updatedAt)}</dd>
           </dl>
         `;
@@ -107,6 +107,17 @@
         queryResultContent.innerHTML = `<p class="error">查询出错：${escapeHtml(err.message)}</p>`;
       }
     });
+
+    // Handle ?device_key=xxx deep link from QR code share
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedDeviceKey = urlParams.get('device_key');
+    if (sharedDeviceKey) {
+      const sharedInput = queryForm.querySelector('[name="device_key"]');
+      if (sharedInput) {
+        sharedInput.value = sharedDeviceKey;
+        queryForm.dispatchEvent(new Event('submit'));
+      }
+    }
   }
 
   // Device key display and management
@@ -181,6 +192,11 @@
     removeDevice
   };
 
+  window.ipstunUi = {
+    escapeHtml,
+    copyButtonHtml
+  };
+
   function renderDeviceKey(deviceKey) {
     if (!deviceKeyDisplay || !deviceKeyValue || !deviceKeyQrcode) return;
 
@@ -243,7 +259,7 @@
           const data = await response.json();
           myipResultContent.innerHTML = `
             <dl>
-              <dt>公网 IP</dt><dd>${escapeHtml(data.ip)}</dd>
+              <dt>公网 IP</dt><dd>${escapeHtml(data.ip)} ${copyButtonHtml(data.ip)}</dd>
               <dt>协议版本</dt><dd>${escapeHtml(data.version)}</dd>
             </dl>
             <p class="empty" style="margin-top:0.75rem">如果你看到的是 IPv6，说明当前网络支持 IPv6。</p>
@@ -370,7 +386,7 @@
       monitorResultContent.innerHTML = `
         <dl>
           <dt>状态</dt><dd>已上报</dd>
-          <dt>当前 IP</dt><dd>${escapeHtml(myip.ip)} (${escapeHtml(myip.version)})</dt>
+          <dt>当前 IP</dt><dd>${escapeHtml(myip.ip)} (${escapeHtml(myip.version)}) ${copyButtonHtml(myip.ip)}</dd>
           <dt>时间</dt><dd>${new Date().toLocaleString('zh-CN')}</dd>
         </dl>
       `;
@@ -393,4 +409,46 @@
     div.textContent = String(text);
     return div.innerHTML;
   }
+
+  function copyButtonHtml(text, label) {
+    return `<button type="button" class="copy-btn-inline" data-copy="${escapeHtml(text)}" aria-label="复制">${label || '复制'}</button>`;
+  }
+
+  // Delegated copy buttons for inline values
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('.copy-btn-inline');
+    if (!button) return;
+
+    const text = button.dataset.copy || '';
+    try {
+      await navigator.clipboard.writeText(text);
+      button.classList.add('copied');
+      const original = button.textContent;
+      button.textContent = '已复制';
+      setTimeout(() => {
+        button.textContent = original;
+        button.classList.remove('copied');
+      }, 1500);
+    } catch (err) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        button.classList.add('copied');
+        const original = button.textContent;
+        button.textContent = '已复制';
+        setTimeout(() => {
+          button.textContent = original;
+          button.classList.remove('copied');
+        }, 1500);
+      } catch (e) {
+        button.textContent = '复制失败';
+      }
+      document.body.removeChild(textarea);
+    }
+  });
 })();

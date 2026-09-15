@@ -13,6 +13,7 @@
   <meta property="og:url" content="https://www.ipstun.cn/devices.html">
   <meta property="og:site_name" content="ipstun">
   <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -82,6 +83,7 @@
   <script>
     (function () {
       const storage = window.ipstunStorage;
+      const ui = window.ipstunUi;
       if (!storage) return;
 
       const addForm = document.getElementById('add-device-form');
@@ -119,7 +121,7 @@
         devicesList.innerHTML = devices.map((device) => `
           <div class="card device-card" data-key="${escapeHtml(device.device_key)}">
             <h3>${escapeHtml(device.device_name || device.device_key.slice(0, 8))}</h3>
-            <p class="device-key">${escapeHtml(device.device_key)}</p>
+            <p class="device-key">${escapeHtml(device.device_key)} ${ui ? ui.copyButtonHtml(device.device_key) : ''}</p>
             <p class="empty device-status">点击查询获取最新状态</p>
             <div class="device-actions">
               <button type="button" class="btn btn-primary btn-sm query-device">查询 IP</button>
@@ -184,9 +186,9 @@
           queryResultContent.innerHTML = `
             <dl>
               <dt>设备名</dt><dd>${escapeHtml(data.device_name || key.slice(0, 8))}</dd>
-              <dt>device_key</dt><dd>${escapeHtml(data.device_key || key)}</dd>
-              <dt>IPv6</dt><dd>${escapeHtml(ipv6)}</dd>
-              <dt>IPv4</dt><dd>${escapeHtml(ipv4)}</dd>
+              <dt>device_key</dt><dd>${escapeHtml(data.device_key || key)} ${ui ? ui.copyButtonHtml(data.device_key || key) : ''}</dd>
+              <dt>IPv6</dt><dd>${escapeHtml(ipv6)} ${ui ? ui.copyButtonHtml(ipv6) : ''}</dd>
+              <dt>IPv4</dt><dd>${escapeHtml(ipv4)} ${ui ? ui.copyButtonHtml(ipv4) : ''}</dd>
               <dt>更新时间</dt><dd>${escapeHtml(updatedAt)} (${ago})</dd>
             </dl>
           `;
