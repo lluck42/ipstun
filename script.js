@@ -392,7 +392,12 @@
 
   let monitorTimer = null;
   let isMonitoring = false;
+  let monitorHeartbeatTimer = null;
   const MONITOR_INTERVAL_MS = 120 * 1000;
+  const MONITOR_HEARTBEAT_INTERVAL_MS = 5000;
+  const MONITOR_HEARTBEAT_TIMEOUT_MS = 10000;
+  const MONITOR_CHANNEL_NAME = 'ipstun-monitor';
+  const monitorChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(MONITOR_CHANNEL_NAME) : null;
 
   if (monitorForm && monitorToggle && monitorResult && monitorResultContent) {
     monitorForm.addEventListener('submit', (event) => {
@@ -430,6 +435,13 @@
       monitorDot.setAttribute('title', '正在监听本机 IP');
     }
 
+    if (monitorChannel) {
+      monitorChannel.postMessage({ type: 'monitor-start', deviceKey, timestamp: Date.now() });
+      monitorHeartbeatTimer = setInterval(() => {
+        monitorChannel.postMessage({ type: 'monitor-heartbeat', deviceKey, timestamp: Date.now() });
+      }, MONITOR_HEARTBEAT_INTERVAL_MS);
+    }
+
     const inputs = monitorForm.querySelectorAll('input');
     inputs.forEach((input) => {
       input.dataset.wasDisabled = input.disabled;
@@ -448,6 +460,10 @@
       clearInterval(monitorTimer);
       monitorTimer = null;
     }
+    if (monitorHeartbeatTimer) {
+      clearInterval(monitorHeartbeatTimer);
+      monitorHeartbeatTimer = null;
+    }
 
     monitorToggle.textContent = '开启监听';
     monitorToggle.classList.remove('btn-secondary');
@@ -455,6 +471,10 @@
     if (monitorDot) {
       monitorDot.classList.remove('active');
       monitorDot.removeAttribute('title');
+    }
+
+    if (monitorChannel) {
+      monitorChannel.postMessage({ type: 'monitor-stop', timestamp: Date.now() });
     }
 
     const inputs = monitorForm.querySelectorAll('input');
@@ -600,4 +620,49 @@
       button.disabled = false;
     }, 1500);
   });
+
+  // Cross-tab monitoring state sync via BroadcastChannel
+  if (monitorChannel) {
+    let lastMonitorHeartbeat = 0;
+    let heartbeatCheckTimer = null;
+
+    function updateMonitorDotFromBroadcast() {
+      const dot = document.getElementById('monitor-dot');
+      if (!dot) return;
+      const alive = Date.now() - lastMonitorHeartbeat < MONITOR_HEARTBEAT_TIMEOUT_MS;
+      if (alive) {
+        dot.classList.add('active');
+        dot.setAttribute('title', '有标签页正在监听本机 IP');
+      } else {
+        dot.classList.remove('active');
+        dot.removeAttribute('title');
+        if (heartbeatCheckTimer) {
+          clearInterval(heartbeatCheckTimer);
+          heartbeatCheckTimer = null;
+        }
+      }
+    }
+
+    monitorChannel.addEventListener('message', (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      if (data.type === 'monitor-start' || data.type === 'monitor-heartbeat') {
+        lastMonitorHeartbeat = data.timestamp || Date.now();
+        updateMonitorDotFromBroadcast();
+        if (!heartbeatCheckTimer) {
+          heartbeatCheckTimer = setInterval(updateMonitorDotFromBroadcast, MONITOR_HEARTBEAT_INTERVAL_MS);
+        }
+      } else if (data.type === 'monitor-stop') {
+        lastMonitorHeartbeat = 0;
+        updateMonitorDotFromBroadcast();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (isMonitoring) {
+        monitorChannel.postMessage({ type: 'monitor-stop', timestamp: Date.now() });
+      }
+    });
+  }
 })();
