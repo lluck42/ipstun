@@ -133,7 +133,6 @@
   const deviceKeyDisplay = document.getElementById('device-key-display');
   const deviceKeyValue = document.getElementById('device-key-value');
   const deviceKeyQrcode = document.getElementById('device-key-qrcode');
-  const regenerateKeyBtn = document.getElementById('regenerate-key');
   const monitorDeviceKeyInput = document.getElementById('monitor-device-key');
 
   const DEVICE_KEY_STORAGE_KEY = 'ipstun_device_key';
@@ -237,12 +236,6 @@
     return key;
   }
 
-  if (regenerateKeyBtn) {
-    regenerateKeyBtn.addEventListener('click', () => {
-      renderDeviceKey();
-    });
-  }
-
   // Copy share link button
   const copyShareLinkBtn = document.getElementById('copy-share-link');
   if (copyShareLinkBtn) {
@@ -337,10 +330,18 @@
     }
   }
 
-  // Report once button
+  // Report once button (QR code section)
   const reportOnceBtn = document.getElementById('report-once');
   if (reportOnceBtn) {
     reportOnceBtn.addEventListener('click', () => {
+      reportOnce(currentDeviceKey);
+    });
+  }
+
+  // Single report button (monitor form)
+  const reportSingleBtn = document.getElementById('report-single');
+  if (reportSingleBtn) {
+    reportSingleBtn.addEventListener('click', () => {
       reportOnce(currentDeviceKey);
     });
   }
@@ -424,7 +425,6 @@
     monitorToggle.textContent = '关闭监听';
     monitorToggle.classList.remove('btn-primary');
     monitorToggle.classList.add('btn-secondary');
-    regenerateKeyBtn.disabled = true;
     if (monitorDot) {
       monitorDot.classList.add('active');
       monitorDot.setAttribute('title', '正在监听本机 IP');
@@ -452,7 +452,6 @@
     monitorToggle.textContent = '开启监听';
     monitorToggle.classList.remove('btn-secondary');
     monitorToggle.classList.add('btn-primary');
-    regenerateKeyBtn.disabled = false;
     if (monitorDot) {
       monitorDot.classList.remove('active');
       monitorDot.removeAttribute('title');
