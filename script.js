@@ -368,7 +368,7 @@
   }
 
   // Check my public IP
-  function bindCheckMyIp(buttonId, resultId, contentId) {
+  function bindCheckMyIp(buttonId, resultId, contentId, autoTrigger) {
     const checkMyIpBtn = document.getElementById(buttonId);
     const myipResult = document.getElementById(resultId);
     const myipResultContent = document.getElementById(contentId);
@@ -397,11 +397,15 @@
           myipResultContent.innerHTML = `<p class="error">检测出错：${escapeHtml(err.message)}</p>`;
         }
       });
+
+      if (autoTrigger) {
+        checkMyIpBtn.click();
+      }
     }
   }
 
   bindCheckMyIp('check-my-ip', 'myip-result', 'myip-result-content');
-  bindCheckMyIp('hero-check-my-ip', 'hero-myip-result', 'hero-myip-result-content');
+  bindCheckMyIp('hero-check-my-ip', 'hero-myip-result', 'hero-myip-result-content', true);
 
   // Browser-side IP monitor
   const monitorForm = document.getElementById('monitor-form');

@@ -529,6 +529,7 @@ a:hover {
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   word-break: break-all;
+  color: var(--text);
 }
 
 .query-result .empty {
