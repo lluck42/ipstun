@@ -294,7 +294,15 @@
 
   async function reportOnce(deviceKey, deviceName) {
     const key = deviceKey || getDeviceKey();
-    const name = deviceName || (document.getElementById('monitor-device-name') && document.getElementById('monitor-device-name').value.trim()) || key.slice(0, 8);
+    const nameInput = document.getElementById('monitor-device-name');
+    const name = (deviceName || (nameInput && nameInput.value.trim()) || '').slice(0, 50);
+
+    if (!name) {
+      if (reportStatusEl) {
+        reportStatusEl.innerHTML = '<span class="error">请先填写设备名</span>';
+      }
+      return { ok: false, error: 'device_name is required' };
+    }
 
     if (reportStatusEl) {
       reportStatusEl.textContent = '正在检测并上报...';
@@ -429,6 +437,11 @@
       }
 
       const deviceName = deviceNameInput.value.trim();
+      if (!deviceName) {
+        monitorResult.classList.remove('hidden');
+        monitorResultContent.innerHTML = '<p class="error">请先填写设备名</p>';
+        return;
+      }
       monitorResult.classList.remove('hidden');
       startMonitor(deviceKey, deviceName);
     });

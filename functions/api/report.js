@@ -47,9 +47,9 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { device_key, device_name, ipv6, ipv4 } = body;
 
-    if (!device_key || (!ipv6 && !ipv4)) {
+    if (!device_key || !device_name || (!ipv6 && !ipv4)) {
       return Response.json(
-        { error: 'device_key and at least one ip (ipv6 or ipv4) are required' },
+        { error: 'device_key, device_name and at least one ip (ipv6 or ipv4) are required' },
         { status: 400 }
       );
     }
