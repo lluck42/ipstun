@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>下载 IPv6 动态同步助手 | ipstun</title>
-  <meta name="description" content="IPv6 动态同步助手介绍：实时监测本机 IPv6 变化，自动更新 DNS 或共享接口，防止运营商前缀变动导致失联。">
-  <meta name="keywords" content="IPv6 同步助手, IPv6 DDNS, 动态域名解析, IPv6 前缀变动">
+  <title>相关软件 | ipstun</title>
+  <meta name="description" content="整理与 IPv6 / 公网 IP 配合使用的远程桌面、SSH、文件同步、远程唤醒等常用软件推荐。">
+  <meta name="keywords" content="IPv6, 远程桌面, RDP, SSH, RustDesk, 远程唤醒, 文件同步">
   <link rel="canonical" href="https://www.ipstun.cn/download.html">
-  <meta property="og:title" content="下载 IPv6 动态同步助手 | ipstun">
-  <meta property="og:description" content="实时监测本机 IPv6 变化，自动更新 DNS 或共享接口。">
+  <meta property="og:title" content="相关软件 | ipstun">
+  <meta property="og:description" content="与公网 IP 配合使用的远程桌面、SSH、文件同步等常用软件推荐。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.ipstun.cn/download.html">
   <meta property="og:site_name" content="ipstun">
@@ -24,7 +24,7 @@
       <ul class="nav-links">
         <li><a href="index.html">首页</a></li>
         <li><a href="how-it-works.html">技术原理</a></li>
-        <li><a class="active" href="download.html">下载工具</a></li>
+        <li><a class="active" href="download.html">相关软件</a></li>
         <li><a href="changelog.html">更新记录</a></li>
         <li><a href="about.html">关于</a></li>
       </ul>
@@ -32,48 +32,100 @@
   </nav>
 
   <header class="hero">
-    <h1>IPv6 动态同步助手</h1>
-    <p>实时监测本机 IPv6 地址变化，自动更新到 DNS 或共享接口，防止运营商前缀变动导致失联。</p>
+    <h1>相关软件推荐</h1>
+    <p>下面列出的软件都可以在拿到公网 IP 后，直接输入 IP 地址进行连接。</p>
   </header>
 
   <main class="container">
-    <section class="card" style="max-width: 640px; margin: 0 auto 2rem;">
-      <h2 class="section-title" style="margin-top: 0;">工具介绍</h2>
-      <p>这是一款为 Windows 设计的轻量级小工具，专门解决“家宽 IPv6 前缀会变”的问题。它会在后台监测你选中的网卡，一旦发现全球单播 IPv6 地址发生变化，就自动把它更新到域名解析（DDNS）或你指定的 HTTP 接口，让外网设备始终能通过同一个域名或链接找到你。</p>
-
-      <h3 style="margin-top: 1.5rem;">计划功能</h3>
-      <ul>
-        <li>自动识别并选择本机网卡，过滤出真正的公网 IPv6 地址</li>
-        <li>定时检测 IPv6 变化，变化后立即触发更新</li>
-        <li>支持常见 DNS 服务商 API（阿里云、腾讯云、DNSPod 等）</li>
-        <li>支持自定义 Webhook / HTTP 接口，把最新地址推送到自己的服务器</li>
-        <li>可选最小化到系统托盘，开机自启</li>
-        <li>本地日志记录，方便排查同步失败问题</li>
-      </ul>
-
-      <h3 style="margin-top: 1.5rem;">适用场景</h3>
-      <ul>
-        <li>远程访问家里的 NAS、树莓派、Windows 远程桌面</li>
-        <li>两台设备之间直接建立 P2P 连接，无需中转服务器</li>
-        <li>把动态 IPv6 绑定到固定域名，分享给朋友或自用</li>
-      </ul>
-
-      <h3 style="margin-top: 1.5rem;">系统要求</h3>
-      <ul>
-        <li>操作系统：Windows 10 / Windows 11</li>
-        <li>网络：已开启并分配公网 IPv6 的家宽网络</li>
-        <li>需要一个已配置好的域名或自建接收接口</li>
-        <li>体积：预计小于 10 MB</li>
-      </ul>
-
-      <h3 style="margin-top: 1.5rem;">下载</h3>
-      <p>小软件目前还在开发中，暂时无法下载。上线后我会把安装包放在这里。</p>
-      <button class="btn btn-disabled" type="button" disabled>Windows 版下载（即将上线）</button>
-
-      <div class="info-box" style="margin-top: 1.5rem;">
-        <strong>等不及？</strong> 你可以先在首页查看自己的公网 IP，或阅读 <a href="how-it-works.html">技术原理</a> 了解设备之间如何直连。
+    <section>
+      <h2 class="section-title">远程桌面</h2>
+      <p class="lead">在软件地址栏里填入 IP，即可远程控制另一台电脑的桌面。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3><a href="https://learn.microsoft.com/zh-cn/windows-server/remote/remote-desktop-services/clients/remote-desktop-allow-access" target="_blank" rel="noopener noreferrer">Windows 远程桌面（RDP）</a></h3>
+          <p>Windows 专业版/企业版自带。在「远程设置」里开启后，用「远程桌面连接」输入 <code>IP</code> 或 <code>[IPv6]:3389</code> 即可连入。</p>
+        </div>
       </div>
     </section>
+
+    <section>
+      <h2 class="section-title">命令行与服务器管理</h2>
+      <p class="lead">管理 Linux、NAS、路由器或树莓派时，SSH 是最轻量的方式。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3><a href="https://aka.ms/terminal" target="_blank" rel="noopener noreferrer">Windows Terminal</a> + <a href="https://learn.microsoft.com/zh-cn/windows-server/administration/openssh/openssh_install_firstuse" target="_blank" rel="noopener noreferrer">OpenSSH</a></h3>
+          <p>Windows 10/11 已内置 OpenSSH 客户端，直接在终端执行 <code>ssh user@IP</code> 或 <code>ssh user@[IPv6]</code> 即可登录。</p>
+        </div>
+        <div class="card">
+          <h3><a href="https://www.putty.org/" target="_blank" rel="noopener noreferrer">PuTTY</a> / <a href="https://tabby.sh/" target="_blank" rel="noopener noreferrer">Tabby</a></h3>
+          <p>经典的 SSH 客户端。在 Host Name 里填入 IP 即可连接；Tabby 界面更现代，支持多标签和 SFTP。</p>
+        </div>
+        <div class="card">
+          <h3><a href="https://winscp.net/" target="_blank" rel="noopener noreferrer">WinSCP</a> / <a href="https://filezilla-project.org/" target="_blank" rel="noopener noreferrer">FileZilla</a></h3>
+          <p>通过 SFTP/FTP 在本地与远程设备之间传输文件，主机地址栏填入 IP 和端口，输入账号密码即可连接。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">文件同步与 P2P 传输</h2>
+      <p class="lead">两台设备之间直接传文件或保持文件夹同步，无需经过网盘中转。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3><a href="https://syncthing.net/" target="_blank" rel="noopener noreferrer">Syncthing</a></h3>
+          <p>开源 P2P 文件同步工具。默认通过发现服务器寻址，也可在设备地址里手动填入 <code>tcp://IP:22000</code> 实现直连。</p>
+        </div>
+        <div class="card">
+          <h3><a href="https://localsend.org/" target="_blank" rel="noopener noreferrer">LocalSend</a></h3>
+          <p>局域网或公网间互传文件，无需注册，在发送界面输入对方设备的 IP 地址即可发送。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">远程唤醒与网络工具</h2>
+      <p class="lead">如果目标设备关机了，可以先唤醒它，再用远程桌面或 SSH 连接。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3><a href="https://www.nirsoft.net/utils/wake_on_lan.html" target="_blank" rel="noopener noreferrer">WakeMeOnLan</a></h3>
+          <p>在主板和网卡开启 WOL 后，向目标 IP 或局域网广播地址发送魔术包，即可唤醒关机设备。</p>
+        </div>
+        <div class="card">
+          <h3><a href="https://www.advanced-ip-scanner.com/" target="_blank" rel="noopener noreferrer">Advanced IP Scanner</a></h3>
+          <p>扫描指定 IP 段内的在线设备，查看 IP、MAC 地址和开放端口，方便确认目标是否可达。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">虚拟组网</h2>
+      <p class="lead">如果你不想直接暴露 IPv6，也可以把多台设备组成一个虚拟局域网。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3><a href="https://www.wireguard.com/" target="_blank" rel="noopener noreferrer">WireGuard</a></h3>
+          <p>轻量高效的 VPN 协议。服务端配置里需要填写对端公网 IP 或域名，客户端再连入这个端点，把外出设备安全接回家中网络。</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">游戏与媒体串流</h2>
+      <p class="lead">利用 IPv6 的大带宽和低延迟，把家里电脑的画面串到手机或另一台电脑上。</p>
+      <div class="card-grid">
+        <div class="card">
+          <h3><a href="https://moonlight-stream.org/" target="_blank" rel="noopener noreferrer">Moonlight</a> + <a href="https://app.lizardbyte.dev/Sunshine/" target="_blank" rel="noopener noreferrer">Sunshine</a></h3>
+          <p>开源游戏串流方案。Sunshine 作为服务端运行在 Windows，Moonlight 客户端里输入服务端的 IP 地址，即可开始串流。</p>
+        </div>
+        <div class="card">
+          <h3><a href="https://jellyfin.org/" target="_blank" rel="noopener noreferrer">Jellyfin</a> / <a href="https://www.plex.tv/" target="_blank" rel="noopener noreferrer">Plex</a></h3>
+          <p>自建家庭影音服务器，通过浏览器或客户端访问 <code>http://[IPv6]:8096</code> 之类的地址，就能在外网播放家里的影片。</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="info-box">
+      <strong>提示</strong>：使用这些软件前，请确保目标设备已开启对应服务（如 RDP、SSH、WOL），并且防火墙放行相应端口。IPv6 地址输入时建议用方括号包裹，例如 <code>[2001:db8::1]:3389</code>。
+    </div>
   </main>
 
   <footer class="site-footer">

@@ -16,7 +16,7 @@
 .
 ├── index.html                        # 站点首页：主推公网 IP 检测 + 设备 IP 同步
 ├── how-it-works.html                 # 技术原理页：解释 IP 检测与 IPv6 直连原理
-├── download.html                     # 小工具下载页（软件尚未发布，当前为占位）
+├── download.html                     # 相关软件页：推荐与公网 IP 配合使用的远程桌面、SSH、文件同步等工具
 ├── changelog.html                    # 更新记录页
 ├── about.html                        # 关于页：项目介绍、技术栈、隐私说明与打赏入口
 ├── style.css                         # 站点共用样式
@@ -37,7 +37,7 @@
 └── README.md                         # 中文版 README（模板内容）
 ```
 
-两个 README 文件目前仍为占位符文本，未描述具体的项目功能、架构或安装步骤。网站页面已具备实际内容，但小软件尚未开发完成。
+两个 README 文件目前仍为占位符文本，未描述具体的项目功能、架构或安装步骤。网站页面已具备实际内容，相关软件推荐页已上线，Windows 自动同步小工具尚未开发完成。
 
 ## 技术栈与架构
 
@@ -48,7 +48,7 @@
 - 数据存储：分布式键值存储 KV（绑定变量名为 `user-device`），用于存储每个设备最新的 IPv6 地址。每个设备用 **device_key（UUID）** 作为 KV key，value 中保存设备名、IPv6/IPv4 和更新时间
 - 部署平台：边缘网络 Pages（静态资源 + Functions 一起部署）
 - 本地开发：`wrangler pages dev .`
-- 小工具：计划为 Windows 桌面程序，核心功能是“IPv6 地址监测 + 上报到本站后端”。技术栈待定（如 C# / Python / Go 等），开发完成后会把可执行文件或下载链接更新到 `download.html`
+- 小工具：计划为 Windows 桌面程序，核心功能是“IPv6 地址监测 + 上报到本站后端”。技术栈待定（如 C# / Python / Go 等），开发完成后会把可执行文件或下载链接放到 `releases/`、`download/` 或独立页面，并在站点导航中更新入口。
 
 ## 构建与运行
 
@@ -75,7 +75,7 @@
 
 > 注意：`wrangler.toml` 中的 KV ID 是占位符，实际部署前必须替换。代码中通过 `env['user-device']` 访问 KV，因此边缘网络 Pages 里的 KV binding 名称也必须是 `user-device`。KV namespace ID 本身不是敏感信息，但建议不要把生产 API Token 写入仓库。
 
-后续如果开发了 Windows 小工具，建议把二进制文件或压缩包放到仓库的 `releases/` 或 `download/` 目录，并在 `download.html` 中更新下载链接。
+后续如果开发了 Windows 小工具，建议把二进制文件或压缩包放到仓库的 `releases/` 或 `download/` 目录，并在站点中更新下载入口；`download.html` 目前用作相关软件推荐页。
 
 ## 测试策略
 
