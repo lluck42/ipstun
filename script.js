@@ -174,7 +174,16 @@
   function addDevice(deviceKey, deviceName) {
     const devices = getDevices();
     const exists = devices.some((d) => d.device_key === deviceKey);
-    if (exists) return false;
+    if (exists) {
+      // 如果设备已存在，更新设备名（如果提供了新名字）
+      if (deviceName) {
+        const updated = devices.map((d) =>
+          d.device_key === deviceKey ? { ...d, device_name: deviceName } : d
+        );
+        saveDevices(updated);
+      }
+      return false;
+    }
 
     devices.push({
       device_key: deviceKey,
@@ -612,8 +621,10 @@
     const storage = window.ipstunStorage;
     if (!storage) return;
 
+    const existingDevice = storage.getDevices().find((d) => d.device_key === key);
+    const nameChanged = existingDevice && existingDevice.device_name !== name;
     const added = storage.addDevice(key, name);
-    button.textContent = added ? '已保存' : '已存在';
+    button.textContent = added ? '已保存' : nameChanged ? '已更新' : '已存在';
     button.disabled = true;
     setTimeout(() => {
       button.textContent = '保存到我的设备';
