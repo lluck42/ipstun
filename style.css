@@ -471,6 +471,7 @@ a:hover {
   border-radius: var(--radius);
   padding: 1rem 1.25rem;
   box-shadow: var(--shadow);
+  color: var(--text);
 }
 
 .query-result.hidden {
