@@ -67,6 +67,83 @@
     </section>
 
     <section>
+      <h2 class="section-title">查看我当前的公网 IP</h2>
+      <p class="lead">点击按钮，本站会直接告诉你当前用于访问互联网的公网 IP 是 IPv4 还是 IPv6。</p>
+      <div class="card">
+        <div class="form-actions">
+          <button type="button" id="check-my-ip" class="btn btn-primary">查看我的 IP</button>
+        </div>
+        <div id="myip-result" class="query-result hidden">
+          <h3>当前连接信息</h3>
+          <div id="myip-result-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">浏览器端持续同步本机 IP</h2>
+      <p class="lead">保持本页面打开，浏览器会每隔 30 秒检测一次你的公网 IP，并自动更新到 KV。适合临时使用；长期运行建议用桌面小软件，避免 write_key 留在浏览器中。</p>
+      <div class="card">
+        <form id="monitor-form">
+          <div class="form-group">
+            <label for="monitor-read-key">read_key</label>
+            <input type="text" id="monitor-read-key" name="read_key" placeholder="例如：a1b2c3d4-..." required>
+          </div>
+          <div class="form-group">
+            <label for="monitor-write-key">write_key</label>
+            <input type="text" id="monitor-write-key" name="write_key" placeholder="请勿在不信任的设备上填写" required>
+          </div>
+          <div class="form-group">
+            <label for="monitor-device-name">设备名（可选）</label>
+            <input type="text" id="monitor-device-name" name="device_name" placeholder="例如：办公室电脑">
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="monitor-toggle" class="btn btn-primary">开启监听</button>
+          </div>
+        </form>
+        <div id="monitor-result" class="query-result hidden">
+          <h3>监听状态</h3>
+          <div id="monitor-result-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">查询已同步设备的 IP</h2>
+      <p class="lead">如果你已经在某台设备上运行了同步工具，只要输入设备的 read_key，就能查看它当前的 IPv6 / IPv4 地址。也可以直接扫描二维码。</p>
+      <div class="card">
+        <form id="query-form">
+          <div class="form-group">
+            <label for="query-read-key">设备 read_key</label>
+            <input type="text" id="query-read-key" name="read_key" placeholder="例如：a1b2c3d4-..." required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">查询 IP</button>
+          </div>
+        </form>
+        <div id="query-result" class="query-result hidden">
+          <h3>查询结果</h3>
+          <div id="query-result-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">生成新设备密钥</h2>
+      <p class="lead">为小软件生成一组新的 read_key / write_key。read_key 用于查询和分享，write_key 请保存在同步小软件中，用来更新 IP。</p>
+      <div class="card">
+        <div class="form-actions">
+          <button type="button" id="generate-keys" class="btn btn-primary">生成密钥对</button>
+        </div>
+        <div id="keys-result" class="query-result hidden">
+          <h3>密钥信息</h3>
+          <div id="keys-result-content"></div>
+          <div id="qrcode-container" class="qrcode-container"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
       <h2 class="section-title">即将上线：IPv6 动态同步小工具</h2>
       <p class="lead">电信/联通/移动的家宽 IPv6 前缀可能会变动，导致你记住的 IPv6 地址突然失效。这款小工具会自动监测本机 IPv6 变化，并实时更新到 DNS 或你指定的接口，让远程设备始终能找到你。</p>
       <a class="btn btn-primary" href="download.html">了解同步工具</a>
@@ -77,6 +154,7 @@
     <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
