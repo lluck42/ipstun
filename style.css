@@ -137,6 +137,10 @@ a:hover {
   opacity: 0.92;
 }
 
+.hero .query-result {
+  color: var(--text);
+}
+
 .hero-actions {
   display: flex;
   flex-direction: column;
