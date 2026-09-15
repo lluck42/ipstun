@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于 | ipstun</title>
+  <meta name="description" content="关于 ipstun：一个基于 Cloudflare Pages 与 KV 的多设备外网 IP 实时同步小站，帮助你随时找到任意设备的 IPv6 / IPv4 地址。">
+  <meta name="keywords" content="ipstun, 关于, IPv6, IP 同步, Cloudflare Pages">
+  <link rel="canonical" href="https://www.ipstun.cn/about.html">
+  <meta property="og:title" content="关于 | ipstun">
+  <meta property="og:description" content="关于 ipstun：一个基于 Cloudflare Pages 与 KV 的多设备外网 IP 实时同步小站。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.ipstun.cn/about.html">
+  <meta property="og:site_name" content="ipstun">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="nav-icon nav-logo-icon" href="devices.html" aria-label="我的设备" title="我的设备"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg><span class="monitor-dot" id="monitor-dot" aria-hidden="true"></span></a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="how-it-works.html">技术原理</a></li>
+        <li><a href="download.html">下载工具</a></li>
+        <li><a href="changelog.html">更新记录</a></li>
+        <li><a class="active" href="about.html">关于</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>关于 ipstun</h1>
+    <p>一个让你随时随地找到任意设备外网 IP 的小工具。</p>
+  </header>
+
+  <main class="container article">
+    <section>
+      <h2>本站是做什么的？</h2>
+      <p>ipstun 是一个多设备外网 IP 实时同步小站。它解决一个常见但容易被忽略的问题：当你的设备处于不同网络（家里的 NAS、办公室的电脑、手机热点），你想要直接访问它们时，往往不知道它们当前的外网 IP 是什么，尤其是 IPv6 地址。</p>
+      <p>通过 ipstun，你可以让每台设备定时上报自己的公网 IP，然后在任何地方输入该设备的 <code>device_key</code> 就能查到它当前的地址。如果设备支持 IPv6，你甚至可以直接点对点访问，无需中转服务器。</p>
+    </section>
+
+    <section>
+      <h2>技术栈</h2>
+      <ul>
+        <li><strong>前端</strong>：纯 HTML / CSS / JavaScript，无第三方框架，轻量易维护。</li>
+        <li><strong>后端</strong>：Cloudflare Pages Functions（基于 Workers 运行时）。</li>
+        <li><strong>数据存储</strong>：Cloudflare KV，用于保存每个设备最新的 IP 与更新时间。</li>
+        <li><strong>部署</strong>：Cloudflare Pages，静态页面与接口一起发布。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>隐私与安全</h2>
+      <p>本站不收集用户名、密码或其他身份信息。KV 中只保存以下内容：</p>
+      <ul>
+        <li>设备名（由你自定义）</li>
+        <li>设备的公网 IPv6 或 IPv4 地址</li>
+        <li>最近一次上报时间</li>
+      </ul>
+      <div class="info-box warning">
+        <strong>注意：</strong>当前使用单个 <code>device_key</code> 同时作为查询和更新凭证。任何知道该密钥的人都能查看或修改对应设备的 IP，请妥善保管，不要公开分享。
+      </div>
+    </section>
+
+    <section>
+      <h2>开源与反馈</h2>
+      <p>本站代码以 MIT 协议开源，仓库地址：<a href="https://github.com/lluck42/ipstun" target="_blank" rel="noopener noreferrer">github.com/lluck42/ipstun</a>。</p>
+      <p>如果你发现 bug、有好的想法，或者想贡献代码，欢迎通过仓库 issue 或 PR 反馈。</p>
+    </section>
+
+    <section class="reward-section" id="reward">
+      <h2>支持本站</h2>
+      <p>如果 ipstun 帮到了你，欢迎扫码支持，让我能持续维护和更新内容。</p>
+      <p class="reward-hint">金额随意，1～10 元即可，心意到就好。</p>
+      <div class="reward-grid">
+        <div class="card reward-card">
+          <h3>微信</h3>
+          <img src="images/reward-wechat.jpg" alt="微信打赏二维码">
+        </div>
+        <div class="card reward-card">
+          <h3>支付宝</h3>
+          <img src="images/reward-alipay.jpg" alt="支付宝打赏二维码">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

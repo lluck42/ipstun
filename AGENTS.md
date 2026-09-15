@@ -5,7 +5,7 @@
 `ipstun` 是一个基于 Cloudflare Pages + Pages Functions 的多设备外网 IP 实时同步小站。前端提供本机 IP 检测、设备 IP 同步与查询、二维码分享，后端通过 Cloudflare KV 存储每个设备最新的 IPv6 / IPv4 地址。小工具计划解决“家宽 IPv6 前缀动态变化”的问题：实时监测本机 IPv6 并上报到本站后端，让外网设备始终能通过本站查询到最新地址。站点前端由纯 HTML / CSS / JavaScript 编写，后端由 Cloudflare Pages Functions 提供。
 
 - 项目名称：ipstun
-- 仓库地址：`git@gitee.com:lluck42/ipstun.git`
+- 仓库地址：`git@github.com:lluck42/ipstun.git`
 - 许可证：MIT License（Copyright (c) 2026 lluck42）
 - 当前分支：`master`
 - 当前提交：`12e0472 Initial commit`
@@ -18,6 +18,7 @@
 ├── how-it-works.html                 # 技术原理页：解释 IP 检测与 IPv6 直连原理
 ├── download.html                     # 小工具下载页（软件尚未发布，当前为占位）
 ├── changelog.html                    # 更新记录页
+├── about.html                        # 关于页：项目介绍、技术栈、隐私说明与打赏入口
 ├── style.css                         # 站点共用样式
 ├── script.js                         # 导航、代码块复制、公网 IP 检测、设备 IP 查询、密钥生成、浏览器端持续同步与百度统计
 ├── images/                           # 静态图片（当前已放置微信 / 支付宝打赏二维码）
