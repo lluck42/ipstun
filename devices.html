@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的设备 | ipstun</title>
+  <meta name="description" content="管理你已保存的设备，随时查询它们的最新 IPv6 / IPv4 地址。">
+  <meta name="keywords" content="我的设备, 设备管理, IP 同步, IPv6 设备">
+  <link rel="canonical" href="https://www.ipstun.cn/devices.html">
+  <meta property="og:title" content="我的设备 | ipstun">
+  <meta property="og:description" content="管理你已保存的设备，随时查询它们的最新 IPv6 / IPv4 地址。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.ipstun.cn/devices.html">
+  <meta property="og:site_name" content="ipstun">
+  <meta name="twitter:card" content="summary">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="nav-icon nav-logo-icon active" href="devices.html" aria-label="我的设备" title="我的设备"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="how-it-works.html">技术原理</a></li>
+        <li><a href="guide.html">查看教程</a></li>
+        <li><a href="download.html">下载工具</a></li>
+        <li><a href="changelog.html">更新记录</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>我的设备</h1>
+    <p>管理你保存的所有设备，一键查询它们的实时外网 IP。</p>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2 class="section-title">添加设备</h2>
+      <div class="card">
+        <form id="add-device-form">
+          <div class="form-group">
+            <label for="add-device-key">device_key</label>
+            <input type="text" id="add-device-key" name="device_key" placeholder="例如：a1b2c3d4-..." required>
+          </div>
+          <div class="form-group">
+            <label for="add-device-name">设备名</label>
+            <input type="text" id="add-device-name" name="device_name" placeholder="例如：办公室电脑">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">添加设备</button>
+          </div>
+        </form>
+        <div id="add-device-message" class="query-result hidden" style="margin-top: 1rem;">
+          <div id="add-device-message-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">设备列表</h2>
+      <div id="devices-list" class="card-grid">
+        <p class="empty" style="grid-column: 1 / -1;">暂无保存的设备。请在上方添加，或在首页开启监听后自动保存。</p>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">查询结果</h2>
+      <div id="device-query-result" class="query-result hidden">
+        <h3>设备信息</h3>
+        <div id="device-query-result-content"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    (function () {
+      const storage = window.ipstunStorage;
+      if (!storage) return;
+
+      const addForm = document.getElementById('add-device-form');
+      const addMessage = document.getElementById('add-device-message');
+      const addMessageContent = document.getElementById('add-device-message-content');
+      const devicesList = document.getElementById('devices-list');
+      const queryResult = document.getElementById('device-query-result');
+      const queryResultContent = document.getElementById('device-query-result-content');
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+      }
+
+      function formatTime(timestamp) {
+        if (!timestamp) return '未知';
+        const diff = Date.now() - timestamp;
+        const minutes = Math.floor(diff / 60000);
+        if (minutes < 1) return '刚刚';
+        if (minutes < 60) return `${minutes} 分钟前`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} 小时前`;
+        const days = Math.floor(hours / 24);
+        return `${days} 天前`;
+      }
+
+      function renderDevices() {
+        const devices = storage.getDevices();
+        if (devices.length === 0) {
+          devicesList.innerHTML = '<p class="empty" style="grid-column: 1 / -1;">暂无保存的设备。请在上方添加，或在首页开启监听后自动保存。</p>';
+          return;
+        }
+
+        devicesList.innerHTML = devices.map((device) => `
+          <div class="card device-card" data-key="${escapeHtml(device.device_key)}">
+            <h3>${escapeHtml(device.device_name || device.device_key.slice(0, 8))}</h3>
+            <p class="device-key">${escapeHtml(device.device_key)}</p>
+            <p class="empty device-status">点击查询获取最新状态</p>
+            <div class="device-actions">
+              <button type="button" class="btn btn-primary btn-sm query-device">查询 IP</button>
+              <button type="button" class="btn btn-secondary btn-sm remove-device">删除</button>
+            </div>
+          </div>
+        `).join('');
+
+        devicesList.querySelectorAll('.query-device').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const card = btn.closest('.device-card');
+            const key = card.dataset.key;
+            queryDevice(key, card);
+          });
+        });
+
+        devicesList.querySelectorAll('.remove-device').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const card = btn.closest('.device-card');
+            const key = card.dataset.key;
+            if (confirm('确定删除这个设备吗？')) {
+              storage.removeDevice(key);
+              renderDevices();
+            }
+          });
+        });
+      }
+
+      async function queryDevice(key, card) {
+        if (card) {
+          const statusEl = card.querySelector('.device-status');
+          statusEl.textContent = '查询中...';
+        }
+
+        queryResult.classList.add('hidden');
+
+        try {
+          const response = await fetch(`/api/devices/${encodeURIComponent(key)}`);
+          if (!response.ok) {
+            if (response.status === 404) {
+              if (card) {
+                card.querySelector('.device-status').textContent = '尚未上报 IP';
+              }
+              showQueryMessage('该设备尚未上报 IP，请先在设备上开启监听。', true);
+            } else {
+              showQueryMessage(`查询失败（状态码 ${response.status}）`, true);
+            }
+            return;
+          }
+
+          const data = await response.json();
+          const ipv6 = data.ipv6 || '无';
+          const ipv4 = data.ipv4 || '无';
+          const updatedAt = data.updated_at ? new Date(data.updated_at).toLocaleString('zh-CN') : '未知';
+          const ago = formatTime(data.updated_at);
+
+          if (card) {
+            card.querySelector('.device-status').textContent = `最近更新：${ago}`;
+          }
+
+          queryResult.classList.remove('hidden');
+          queryResultContent.innerHTML = `
+            <dl>
+              <dt>设备名</dt><dd>${escapeHtml(data.device_name || key.slice(0, 8))}</dd>
+              <dt>device_key</dt><dd>${escapeHtml(data.device_key || key)}</dd>
+              <dt>IPv6</dt><dd>${escapeHtml(ipv6)}</dd>
+              <dt>IPv4</dt><dd>${escapeHtml(ipv4)}</dd>
+              <dt>更新时间</dt><dd>${escapeHtml(updatedAt)} (${ago})</dd>
+            </dl>
+          `;
+        } catch (err) {
+          showQueryMessage(`查询出错：${err.message}`, true);
+        }
+      }
+
+      function showAddMessage(text, isError) {
+        addMessage.classList.remove('hidden');
+        addMessageContent.innerHTML = isError
+          ? `<p class="error">${escapeHtml(text)}</p>`
+          : `<p class="empty">${escapeHtml(text)}</p>`;
+      }
+
+      function showQueryMessage(text, isError) {
+        queryResult.classList.remove('hidden');
+        queryResultContent.innerHTML = isError
+          ? `<p class="error">${escapeHtml(text)}</p>`
+          : `<p class="empty">${escapeHtml(text)}</p>`;
+      }
+
+      if (addForm) {
+        addForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const key = addForm.querySelector('[name="device_key"]').value.trim();
+          const name = addForm.querySelector('[name="device_name"]').value.trim();
+
+          if (!key) {
+            showAddMessage('device_key 不能为空', true);
+            return;
+          }
+
+          const added = storage.addDevice(key, name || key.slice(0, 8));
+          if (!added) {
+            showAddMessage('该设备已存在', true);
+            return;
+          }
+
+          addForm.reset();
+          showAddMessage('添加成功', false);
+          renderDevices();
+        });
+      }
+
+      renderDevices();
+    })();
+  </script>
+</body>
+</html>

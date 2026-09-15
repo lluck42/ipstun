@@ -116,18 +116,70 @@
   const regenerateKeyBtn = document.getElementById('regenerate-key');
   const monitorDeviceKeyInput = document.getElementById('monitor-device-key');
 
-  const DEVICE_KEY_COOKIE_NAME = 'ipstun_device_key';
-  const DEVICE_KEY_COOKIE_DAYS = 30;
+  const DEVICE_KEY_STORAGE_KEY = 'ipstun_device_key';
+  const DEVICES_LIST_STORAGE_KEY = 'ipstun_devices';
 
-  function setDeviceKeyCookie(value) {
-    const expires = new Date(Date.now() + DEVICE_KEY_COOKIE_DAYS * 864e5).toUTCString();
-    document.cookie = `${DEVICE_KEY_COOKIE_NAME}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  function setDeviceKey(value) {
+    try {
+      localStorage.setItem(DEVICE_KEY_STORAGE_KEY, value);
+    } catch (e) {
+      // localStorage 不可用则忽略
+    }
   }
 
-  function getDeviceKeyCookie() {
-    const match = document.cookie.match(new RegExp('(^| )' + DEVICE_KEY_COOKIE_NAME + '=([^;]+)'));
-    return match ? decodeURIComponent(match[2]) : null;
+  function getDeviceKey() {
+    try {
+      return localStorage.getItem(DEVICE_KEY_STORAGE_KEY);
+    } catch (e) {
+      return null;
+    }
   }
+
+  function getDevices() {
+    try {
+      const raw = localStorage.getItem(DEVICES_LIST_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveDevices(devices) {
+    try {
+      localStorage.setItem(DEVICES_LIST_STORAGE_KEY, JSON.stringify(devices));
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  function addDevice(deviceKey, deviceName) {
+    const devices = getDevices();
+    const exists = devices.some((d) => d.device_key === deviceKey);
+    if (exists) return false;
+
+    devices.push({
+      device_key: deviceKey,
+      device_name: deviceName || deviceKey.slice(0, 8),
+      created_at: Date.now()
+    });
+    saveDevices(devices);
+    return true;
+  }
+
+  function removeDevice(deviceKey) {
+    const devices = getDevices().filter((d) => d.device_key !== deviceKey);
+    saveDevices(devices);
+  }
+
+  // 暴露给全局，方便其他页面使用
+  window.ipstunStorage = {
+    getDeviceKey,
+    setDeviceKey,
+    getDevices,
+    saveDevices,
+    addDevice,
+    removeDevice
+  };
 
   function renderDeviceKey(deviceKey) {
     if (!deviceKeyDisplay || !deviceKeyValue || !deviceKeyQrcode) return;
@@ -152,7 +204,7 @@
       monitorDeviceKeyInput.value = key;
     }
 
-    setDeviceKeyCookie(key);
+    setDeviceKey(key);
 
     return key;
   }
@@ -163,9 +215,12 @@
     });
   }
 
-  // 页面加载时：优先使用 cookie 中保存的 device_key，否则自动生成
-  const storedKey = getDeviceKeyCookie();
-  renderDeviceKey(storedKey);
+  // 页面加载时：优先使用 localStorage 中保存的 device_key，否则自动生成
+  const storedKey = getDeviceKey();
+  const currentDeviceKey = renderDeviceKey(storedKey);
+  if (currentDeviceKey) {
+    addDevice(currentDeviceKey, '本机');
+  }
 
   // Check my public IP
   function bindCheckMyIp(buttonId, resultId, contentId) {

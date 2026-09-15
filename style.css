@@ -63,10 +63,14 @@ a:hover {
   height: 64px;
 }
 
-.logo {
-  font-weight: 700;
-  font-size: 1.1rem;
+.nav-logo-icon {
   color: var(--text);
+}
+
+.nav-logo-icon:hover,
+.nav-logo-icon.active {
+  color: var(--primary);
+  text-decoration: none;
 }
 
 .nav-links {
@@ -87,6 +91,20 @@ a:hover {
 .nav-links a.active {
   color: var(--primary);
   text-decoration: none;
+}
+
+.nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.nav-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .nav-toggle {
