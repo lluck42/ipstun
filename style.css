@@ -64,6 +64,7 @@ a:hover {
 }
 
 .nav-logo-icon {
+  position: relative;
   color: var(--text);
 }
 
@@ -71,6 +72,34 @@ a:hover {
 .nav-logo-icon.active {
   color: var(--primary);
   text-decoration: none;
+}
+
+.monitor-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  display: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92);
+}
+
+.monitor-dot.active {
+  display: block;
+  animation: monitor-pulse 1.5s infinite;
+}
+
+@keyframes monitor-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
 }
 
 .nav-links {

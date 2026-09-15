@@ -79,7 +79,7 @@
         const response = await fetch(`/api/devices/${encodeURIComponent(deviceKey)}`);
         if (!response.ok) {
           if (response.status === 404) {
-            queryResultContent.innerHTML = '<p class="empty">未找到该设备，请检查 device_key 是否正确。</p>';
+            queryResultContent.innerHTML = '<p class="empty">未找到该设备。如果你查询的是本机，请先在“同步本机 IP”区域点击“立即上报一次”或“开启监听”；如果查询的是其他设备，请确认对方已开启同步。</p>';
           } else {
             queryResultContent.innerHTML = `<p class="error">查询失败（状态码 ${response.status}）</p>`;
           }
@@ -304,6 +304,69 @@
     addDevice(currentDeviceKey, '本机');
   }
 
+  // One-time report status area
+  const reportStatusEl = document.getElementById('report-status');
+
+  async function reportOnce(deviceKey, deviceName) {
+    const key = deviceKey || getDeviceKey();
+    const name = deviceName || (document.getElementById('monitor-device-name') && document.getElementById('monitor-device-name').value.trim()) || key.slice(0, 8);
+
+    if (reportStatusEl) {
+      reportStatusEl.textContent = '正在检测并上报...';
+      reportStatusEl.className = 'empty';
+    }
+
+    try {
+      const myipResponse = await fetch('/api/myip');
+      if (!myipResponse.ok) {
+        throw new Error(`检测失败 ${myipResponse.status}`);
+      }
+      const myip = await myipResponse.json();
+
+      const payload = {
+        device_key: key,
+        device_name: name,
+        ipv6: myip.version === 'IPv6' ? myip.ip : '',
+        ipv4: myip.version === 'IPv4' ? myip.ip : ''
+      };
+
+      const reportResponse = await fetch('/api/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!reportResponse.ok) {
+        const errData = await reportResponse.json().catch(() => ({}));
+        throw new Error(errData.error || `上报失败 ${reportResponse.status}`);
+      }
+
+      if (reportStatusEl) {
+        reportStatusEl.innerHTML = `已上报：${escapeHtml(myip.ip)} (${escapeHtml(myip.version)})，现在可以用 device_key 查询本机 IP。`;
+        reportStatusEl.className = 'empty';
+      }
+      return { ok: true, ip: myip.ip, version: myip.version };
+    } catch (err) {
+      if (reportStatusEl) {
+        reportStatusEl.innerHTML = `<span class="error">上报失败：${escapeHtml(err.message)}</span>`;
+      }
+      return { ok: false, error: err.message };
+    }
+  }
+
+  // Report once button
+  const reportOnceBtn = document.getElementById('report-once');
+  if (reportOnceBtn) {
+    reportOnceBtn.addEventListener('click', () => {
+      reportOnce(currentDeviceKey);
+    });
+  }
+
+  // Auto-report once on first page load so the device is immediately queryable
+  if (currentDeviceKey) {
+    reportOnce(currentDeviceKey);
+  }
+
   // Check my public IP
   function bindCheckMyIp(buttonId, resultId, contentId) {
     const checkMyIpBtn = document.getElementById(buttonId);
@@ -345,10 +408,11 @@
   const monitorToggle = document.getElementById('monitor-toggle');
   const monitorResult = document.getElementById('monitor-result');
   const monitorResultContent = document.getElementById('monitor-result-content');
+  const monitorDot = document.getElementById('monitor-dot');
 
   let monitorTimer = null;
   let isMonitoring = false;
-  const MONITOR_INTERVAL_MS = 30 * 1000;
+  const MONITOR_INTERVAL_MS = 120 * 1000;
 
   if (monitorForm && monitorToggle && monitorResult && monitorResultContent) {
     monitorForm.addEventListener('submit', (event) => {
@@ -382,6 +446,10 @@
     monitorToggle.classList.remove('btn-primary');
     monitorToggle.classList.add('btn-secondary');
     regenerateKeyBtn.disabled = true;
+    if (monitorDot) {
+      monitorDot.classList.add('active');
+      monitorDot.setAttribute('title', '正在监听本机 IP');
+    }
 
     const inputs = monitorForm.querySelectorAll('input');
     inputs.forEach((input) => {
@@ -406,6 +474,10 @@
     monitorToggle.classList.remove('btn-secondary');
     monitorToggle.classList.add('btn-primary');
     regenerateKeyBtn.disabled = false;
+    if (monitorDot) {
+      monitorDot.classList.remove('active');
+      monitorDot.removeAttribute('title');
+    }
 
     const inputs = monitorForm.querySelectorAll('input');
     inputs.forEach((input) => {

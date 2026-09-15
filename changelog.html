@@ -19,7 +19,7 @@
 <body>
   <nav class="navbar">
     <div class="nav-container">
-      <a class="nav-icon nav-logo-icon" href="devices.html" aria-label="我的设备" title="我的设备"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></a>
+      <a class="nav-icon nav-logo-icon" href="devices.html" aria-label="我的设备" title="我的设备"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg><span class="monitor-dot" id="monitor-dot" aria-hidden="true"></span></a>
       <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
       <ul class="nav-links">
         <li><a href="index.html">首页</a></li>
@@ -40,7 +40,13 @@
     <section>
       <h2>2026-09-15</h2>
       <ul>
+        <li>浏览器持续监听频率从 30 秒调整为 2 分钟，降低 KV 写入压力</li>
+        <li>导航栏设备图标新增监听状态小绿点，开启持续监听时闪烁提示</li>
+        <li>/api/report 支持 IPv4 或 IPv6 任填其一</li>
+        <li>上报数据增加 30 天有效期（TTL），长期未更新自动清理</li>
         <li>修复首页 hero 区域“查看本机 IP”结果文字颜色与背景相同导致看不见的问题</li>
+        <li>新增“立即上报一次”按钮，页面加载后也会自动上报一次</li>
+        <li>优化“未找到该设备”提示，明确告知需要先上报</li>
         <li>查询结果新增“保存到我的设备”按钮</li>
         <li>根据设备上报时间显示在线/最近在线/离线状态</li>
         <li>二维码分享跳转后自动清理 URL 参数</li>

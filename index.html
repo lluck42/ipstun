@@ -19,7 +19,7 @@
 <body>
   <nav class="navbar">
     <div class="nav-container">
-      <a class="nav-icon nav-logo-icon" href="devices.html" aria-label="我的设备" title="我的设备"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></a>
+      <a class="nav-icon nav-logo-icon" href="devices.html" aria-label="我的设备" title="我的设备"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg><span class="monitor-dot" id="monitor-dot" aria-hidden="true"></span></a>
       <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
       <ul class="nav-links">
         <li><a class="active" href="index.html">首页</a></li>
@@ -67,7 +67,7 @@
 
     <section>
       <h2 class="section-title">同步本机 IP</h2>
-      <p class="lead">下面是你当前设备的 device_key 和二维码。保持本页面打开并开启监听，浏览器会每 30 秒检测一次你的公网 IP 并自动上报。长期运行建议用桌面小软件，避免 device_key 留在浏览器中。</p>
+      <p class="lead">下面是你当前设备的 device_key 和二维码。保持本页面打开并开启监听，浏览器会每 2 分钟检测一次你的公网 IP 并自动上报。长期运行建议用桌面小软件，避免 device_key 留在浏览器中。</p>
       <div class="card">
         <div id="device-key-display" class="device-key-display hidden">
           <div class="key-row">
@@ -80,9 +80,10 @@
           </div>
           <div id="device-key-qrcode" class="qrcode-container"></div>
           <div class="share-actions">
+            <button type="button" id="report-once" class="btn btn-secondary btn-sm">立即上报一次</button>
             <button type="button" id="copy-share-link" class="btn btn-secondary btn-sm">复制分享链接</button>
           </div>
-          <p class="empty">扫码或复制链接，即可从其他设备查询本机实时 IP。</p>
+          <p id="report-status" class="empty" style="margin-top: 0.75rem;">首次使用请先点击“立即上报一次”，其他设备才能查到你。</p>
         </div>
 
         <form id="monitor-form">

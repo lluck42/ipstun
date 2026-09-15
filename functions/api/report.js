@@ -5,9 +5,9 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { device_key, device_name, ipv6, ipv4 } = body;
 
-    if (!device_key || !ipv6) {
+    if (!device_key || (!ipv6 && !ipv4)) {
       return Response.json(
-        { error: 'device_key and ipv6 are required' },
+        { error: 'device_key and at least one ip (ipv6 or ipv4) are required' },
         { status: 400 }
       );
     }
@@ -30,7 +30,9 @@ export async function onRequestPost(context) {
       updated_at: Date.now()
     });
 
-    await kv.put(key, payload);
+    // 30 天有效期：设备持续上报会自动刷新，长期未上报则自动清理
+    const THIRTY_DAYS = 30 * 24 * 60 * 60;
+    await kv.put(key, payload, { expirationTtl: THIRTY_DAYS });
 
     return Response.json({ ok: true, device_key: key });
   } catch (err) {
