@@ -20,6 +20,7 @@
 ├── changelog.html                    # 更新记录页
 ├── style.css                         # 站点共用样式
 ├── script.js                         # 导航、代码块复制、公网 IP 检测、设备 IP 查询、密钥生成、浏览器端持续同步与百度统计
+├── images/                           # 静态图片（当前已放置支付宝打赏二维码 reward-alipay.jpg，微信二维码为占位）
 ├── functions/                        # Cloudflare Pages Functions（后端接口）
 │   └── api/
 │       ├── myip.js                   # GET /api/myip：返回访问者当前公网 IP 与协议版本
