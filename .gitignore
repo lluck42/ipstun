@@ -4,7 +4,7 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-# Cloudflare Wrangler local state
+# Wrangler local state
 .wrangler/
 .dev.vars
 

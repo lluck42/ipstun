@@ -44,6 +44,7 @@
         <li>移除“查看教程”页面（guide.html）及其导航入口，同步更新 sitemap.xml</li>
         <li>新增“关于”页面（about.html），并在全站导航中加入入口</li>
         <li>打赏二维码从技术原理页移至关于页底部，技术原理页保持纯科普内容</li>
+        <li>将 qrcode.js 库从远程 CDN 迁移到本地 lib/qrcode.min.js，避免外部依赖</li>
         <li>devices.html 添加设备表单简化为只填 device_key，查询后自动同步 KV 中的设备名</li>
         <li>/api/report 后端校验 device_name 必填</li>
         <li>/api/report 增加基于 IP 的内存级频率限制（60 秒 10 次）</li>
@@ -92,7 +93,7 @@
     <section>
       <h2>2026-09-14</h2>
       <ul>
-        <li>上线 Cloudflare Pages 全栈站点</li>
+        <li>上线边缘网络全栈站点</li>
         <li>完成首页、教程页、下载页</li>
         <li>实现基于 KV 的 IPv6 上报与查询接口</li>
       </ul>

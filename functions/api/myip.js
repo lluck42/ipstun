@@ -1,13 +1,13 @@
 export async function onRequestGet(context) {
   const { request } = context;
 
-  // Cloudflare 把客户端真实 IP 放在 CF-Connecting-IP
+  // 边缘网关通常把客户端真实 IP 放在 cf-connecting-ip 请求头中
   // 本地开发或 fallback 时尝试 X-Forwarded-For / X-Real-IP
-  const cfIp = request.headers.get('cf-connecting-ip');
+  const edgeIp = request.headers.get('cf-connecting-ip');
   const forwardedFor = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
 
-  let ip = cfIp || realIp || '';
+  let ip = edgeIp || realIp || '';
   if (!ip && forwardedFor) {
     ip = forwardedFor.split(',')[0].trim();
   }

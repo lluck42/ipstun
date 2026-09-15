@@ -1,6 +1,6 @@
 # ipstun
 
-一个基于 Cloudflare Pages + Pages Functions 的多设备外网 IP 实时同步小站。
+一个基于边缘网络 Pages + Functions 的多设备外网 IP 实时同步小站。
 
 ## 介绍
 
@@ -17,11 +17,11 @@
 ## 软件架构
 
 - 前端：纯 HTML / CSS / 原生 JavaScript，位于仓库根目录。
-- 后端：Cloudflare Pages Functions（`functions/`）。
+- 后端：边缘网络 Functions（`functions/`）。
   - `GET /api/myip`：返回访问者当前公网 IP 与协议版本。
   - `POST /api/report`：凭 device_key 上报设备 IP。
   - `GET /api/devices/:device_key`：查询设备最新 IP。
-- 数据存储：Cloudflare KV（绑定名 `user-device`），以 device_key（UUID）为 key。
+- 数据存储：分布式键值存储 KV（绑定名 `user-device`），以 device_key（UUID）为 key。
 
 ## 安装与运行
 
@@ -33,12 +33,12 @@
    ```bash
    npm run dev
    ```
-3. 部署到 Cloudflare Pages：
+3. 部署到边缘网络 Pages：
    ```bash
    npm run deploy
    ```
 
-部署前请确保 `wrangler.toml` 中的 KV namespace ID 已替换为你自己在 Cloudflare Dashboard 创建的命名空间 ID。
+部署前请确保 `wrangler.toml` 中的 KV namespace ID 已替换为你自己在服务商控制台创建的命名空间 ID。
 
 ## 使用说明
 

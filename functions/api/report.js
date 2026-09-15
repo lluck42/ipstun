@@ -1,5 +1,5 @@
 // 简单内存级频率限制（按 IP）
-// 注意：Cloudflare Workers 的 isolate 之间不共享内存，
+// 注意：边缘函数的运行实例之间不共享内存，
 // 所以这不是全局完美的限流，但能挡住普通刷接口行为。
 const requestLog = new Map();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;

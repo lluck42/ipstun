@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>技术原理 | ipstun</title>
   <meta name="description" content="了解 ipstun 如何检测公网 IP、IPv4 与 IPv6 的区别，以及设备之间如何通过 IPv6 直接通信。">
-  <meta name="keywords" content="IP 检测原理, IPv6 直连, 公网 IP, Cloudflare Workers, IPv6 原理">
+  <meta name="keywords" content="IP 检测原理, IPv6 直连, 公网 IP, 边缘函数, IPv6 原理">
   <link rel="canonical" href="https://www.ipstun.cn/how-it-works.html">
   <meta property="og:title" content="技术原理 | ipstun">
   <meta property="og:description" content="了解 ipstun 如何检测公网 IP、IPv4 与 IPv6 的区别，以及设备之间如何通过 IPv6 直接通信。">
@@ -40,7 +40,7 @@
     <section>
       <h2>一、怎么知道我的公网 IP？</h2>
       <p>当你访问任何一个网站时，你的设备会先向服务器发送一个 HTTP 请求。在这个请求的 TCP/IP 包头里，就携带了你当前用于连接互联网的源 IP 地址。</p>
-      <p>本站部署在 Cloudflare Pages 上，Cloudflare 会在请求到达本站代码之前，把客户端的真实 IP 放进一个名为 <code>CF-Connecting-IP</code> 的 HTTP Header 中。本站的后端接口 <code>/api/myip</code> 读取这个 Header，就能返回你的公网 IP。</p>
+      <p>本站部署在边缘网络上，请求到达本站代码之前，网关会把客户端的真实 IP 放进 HTTP 请求头中。本站的后端接口 <code>/api/myip</code> 读取这个请求头，就能返回你的公网 IP。</p>
       <div class="info-box">
         <strong>简单理解：</strong>你不是“查”自己的 IP，而是让服务器告诉你“它看到的你的 IP 是多少”。
       </div>
@@ -67,13 +67,13 @@
 
     <section>
       <h2>四、本站怎么同步设备 IP？</h2>
-      <p>本站使用 Cloudflare KV 作为轻量级数据库，每个设备用一个 UUID（本站称为 <code>device_key</code>）作为标识。设备上的浏览器或小软件定时调用 <code>/api/myip</code> 获取当前 IP，再通过 <code>POST /api/report</code> 把 IP 和设备名存到 KV 中。</p>
+      <p>本站使用分布式键值存储（KV）作为轻量级数据库，每个设备用一个 UUID（本站称为 <code>device_key</code>）作为标识。设备上的浏览器或小软件定时调用 <code>/api/myip</code> 获取当前 IP，再通过 <code>POST /api/report</code> 把 IP 和设备名存到 KV 中。</p>
       <p>当你想查询某台设备的最新 IP 时，只需要在首页输入它的 <code>device_key</code>，本站就会从 KV 中读取并返回。</p>
     </section>
 
     <section>
       <h2>五、数据存在哪里？安全吗？</h2>
-      <p>数据存储在 Cloudflare KV 中，这是一种全球分布式的键值存储。本站只保存设备名、IP 地址和更新时间，不保存密码、也不记录用户身份。</p>
+      <p>数据存储在分布式键值存储（KV）中，这是一种全球分布式的键值存储。本站只保存设备名、IP 地址和更新时间，不保存密码、也不记录用户身份。</p>
       <p>由于目前使用单个 <code>device_key</code> 同时作为查询和更新凭证，任何知道该密钥的人都能查看或更新对应设备的 IP。因此请不要把 device_key 泄露给不信任的人。</p>
     </section>
 

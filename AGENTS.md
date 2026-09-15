@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-`ipstun` 是一个基于 Cloudflare Pages + Pages Functions 的多设备外网 IP 实时同步小站。前端提供本机 IP 检测、设备 IP 同步与查询、二维码分享，后端通过 Cloudflare KV 存储每个设备最新的 IPv6 / IPv4 地址。小工具计划解决“家宽 IPv6 前缀动态变化”的问题：实时监测本机 IPv6 并上报到本站后端，让外网设备始终能通过本站查询到最新地址。站点前端由纯 HTML / CSS / JavaScript 编写，后端由 Cloudflare Pages Functions 提供。
+`ipstun` 是一个基于边缘网络 Pages + Functions 的多设备外网 IP 实时同步小站。前端提供本机 IP 检测、设备 IP 同步与查询、二维码分享，后端通过分布式键值存储（KV）存储每个设备最新的 IPv6 / IPv4 地址。小工具计划解决“家宽 IPv6 前缀动态变化”的问题：实时监测本机 IPv6 并上报到本站后端，让外网设备始终能通过本站查询到最新地址。站点前端由纯 HTML / CSS / JavaScript 编写，后端由边缘网络 Functions 提供。
 
 - 项目名称：ipstun
 - 仓库地址：`git@github.com:lluck42/ipstun.git`
@@ -22,13 +22,14 @@
 ├── style.css                         # 站点共用样式
 ├── script.js                         # 导航、代码块复制、公网 IP 检测、设备 IP 查询、密钥生成、浏览器端持续同步与百度统计
 ├── images/                           # 静态图片（当前已放置微信 / 支付宝打赏二维码）
-├── functions/                        # Cloudflare Pages Functions（后端接口）
+├── lib/                              # 本地化的第三方 JS 库（当前为 qrcode.min.js）
+├── functions/                        # 边缘网络 Functions（后端接口）
 │   └── api/
 │       ├── myip.js                   # GET /api/myip：返回访问者当前公网 IP 与协议版本
 │       ├── report.js                 # POST /api/report：凭 device_key 上报 IPv6
 │       └── devices/
 │           └── [device_key].js       # GET /api/devices/:device_key：查询设备最新 IP
-├── wrangler.toml                     # Cloudflare 部署与 KV 绑定配置
+├── wrangler.toml                     # 边缘网络部署与 KV 绑定配置
 ├── package.json                      # 开发依赖与部署脚本
 ├── .gitignore                        # Git 忽略规则
 ├── LICENSE                           # MIT 许可证
@@ -40,12 +41,12 @@
 
 ## 技术栈与架构
 
-当前站点为 Cloudflare Pages + Pages Functions 全栈应用。
+当前站点为边缘网络 Pages + Functions 全栈应用。
 
 - 前端：HTML5、CSS3、原生 JavaScript（ES6），位于仓库根目录
-- 后端：Cloudflare Pages Functions（基于 Workers 运行时的服务端函数），位于 `functions/`
-- 数据存储：Cloudflare KV（绑定变量名为 `user-device`），用于存储每个设备最新的 IPv6 地址。每个设备用 **device_key（UUID）** 作为 KV key，value 中保存设备名、IPv6/IPv4 和更新时间
-- 部署平台：Cloudflare Pages（静态资源 + Functions 一起部署）
+- 后端：边缘网络 Functions（基于 Serverless 运行时的服务端函数），位于 `functions/`
+- 数据存储：分布式键值存储 KV（绑定变量名为 `user-device`），用于存储每个设备最新的 IPv6 地址。每个设备用 **device_key（UUID）** 作为 KV key，value 中保存设备名、IPv6/IPv4 和更新时间
+- 部署平台：边缘网络 Pages（静态资源 + Functions 一起部署）
 - 本地开发：`wrangler pages dev .`
 - 小工具：计划为 Windows 桌面程序，核心功能是“IPv6 地址监测 + 上报到本站后端”。技术栈待定（如 C# / Python / Go 等），开发完成后会把可执行文件或下载链接更新到 `download.html`
 
@@ -63,16 +64,16 @@
    ```
    默认打开 `http://localhost:8787`。
 
-### 部署到 Cloudflare Pages
+### 部署到边缘网络 Pages
 
-1. 确保已在 Cloudflare Dashboard 创建 KV 命名空间，并把 ID 填入 `wrangler.toml`。
+1. 确保已在服务商控制台创建 KV 命名空间，并把 ID 填入 `wrangler.toml`。
 2. 执行：
    ```bash
    npm run deploy
    ```
 3. 部署成功后，静态页面和 `/api/*` 接口会同时上线。
 
-> 注意：`wrangler.toml` 中的 KV ID 是占位符，实际部署前必须替换。代码中通过 `env['user-device']` 访问 KV，因此 Cloudflare Pages 里的 KV binding 名称也必须是 `user-device`。KV namespace ID 本身不是敏感信息，但建议不要把生产 API Token 写入仓库。
+> 注意：`wrangler.toml` 中的 KV ID 是占位符，实际部署前必须替换。代码中通过 `env['user-device']` 访问 KV，因此边缘网络 Pages 里的 KV binding 名称也必须是 `user-device`。KV namespace ID 本身不是敏感信息，但建议不要把生产 API Token 写入仓库。
 
 后续如果开发了 Windows 小工具，建议把二进制文件或压缩包放到仓库的 `releases/` 或 `download/` 目录，并在 `download.html` 中更新下载链接。
 
