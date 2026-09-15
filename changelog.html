@@ -24,7 +24,6 @@
       <ul class="nav-links">
         <li><a href="index.html">首页</a></li>
         <li><a href="how-it-works.html">技术原理</a></li>
-        <li><a href="guide.html">查看教程</a></li>
         <li><a href="download.html">下载工具</a></li>
         <li><a class="active" href="changelog.html">更新记录</a></li>
       </ul>
@@ -41,6 +40,7 @@
       <h2>2026-09-15</h2>
       <ul>
         <li>设备名改为由上报端设置，index.html 监控表单设备名必填，默认“本机”</li>
+        <li>移除“查看教程”页面（guide.html）及其导航入口，同步更新 sitemap.xml</li>
         <li>devices.html 添加设备表单简化为只填 device_key，查询后自动同步 KV 中的设备名</li>
         <li>/api/report 后端校验 device_name 必填</li>
         <li>/api/report 增加基于 IP 的内存级频率限制（60 秒 10 次）</li>
