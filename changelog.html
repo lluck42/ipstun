@@ -40,6 +40,8 @@
     <section>
       <h2>2026-09-15</h2>
       <ul>
+        <li>/api/report 增加基于 IP 的内存级频率限制（60 秒 10 次）</li>
+        <li>/api/report 增加 device_key UUID v4 格式校验，限制 device_name 长度</li>
         <li>保存已存在的设备时，如果设备名变化则更新并提示“已更新”</li>
         <li>在浏览器监听区域添加“离开本页后监听自动停止”的提示</li>
         <li>使用 BroadcastChannel 实现跨标签页监听状态同步，小绿点在其他页面也能显示</li>

@@ -1,7 +1,49 @@
+// 简单内存级频率限制（按 IP）
+// 注意：Cloudflare Workers 的 isolate 之间不共享内存，
+// 所以这不是全局完美的限流，但能挡住普通刷接口行为。
+const requestLog = new Map();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 10;
+
+function getClientIp(request) {
+  return (
+    request.headers.get('cf-connecting-ip') ||
+    request.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const history = requestLog.get(ip) || [];
+  const valid = history.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+
+  if (valid.length >= RATE_LIMIT_MAX_REQUESTS) {
+    requestLog.set(ip, valid);
+    return true;
+  }
+
+  valid.push(now);
+  requestLog.set(ip, valid);
+  return false;
+}
+
+function isValidUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
+    const clientIp = getClientIp(request);
+    if (isRateLimited(clientIp)) {
+      return Response.json(
+        { error: 'too many requests, please try again later' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { device_key, device_name, ipv6, ipv4 } = body;
 
@@ -12,7 +54,7 @@ export async function onRequestPost(context) {
       );
     }
 
-    const key = device_key.trim();
+    const key = String(device_key).trim();
     if (!key) {
       return Response.json(
         { error: 'device_key cannot be empty' },
@@ -20,13 +62,22 @@ export async function onRequestPost(context) {
       );
     }
 
+    if (!isValidUuid(key)) {
+      return Response.json(
+        { error: 'device_key must be a valid uuid' },
+        { status: 400 }
+      );
+    }
+
+    const name = device_name ? String(device_name).trim().slice(0, 50) : '';
+
     const kv = env['user-device'];
 
     const payload = JSON.stringify({
       device_key: key,
-      device_name: device_name || '',
-      ipv6,
-      ipv4: ipv4 || '',
+      device_name: name,
+      ipv6: String(ipv6 || ''),
+      ipv4: String(ipv4 || ''),
       updated_at: Date.now()
     });
 
