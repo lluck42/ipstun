@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IP 查询指南 - 轻松获取你的 IP 与 IPv6</title>
+  <title>ipstun - 多设备外网 IP 实时同步</title>
+  <meta name="description" content="通过 IPv6 实时同步你的设备外网 IP，让手机、电脑、NAS 之间直接找到彼此。支持浏览器端监听与二维码分享查询。">
+  <meta name="keywords" content="IP 同步, IPv6 直连, 设备 IP, 外网 IP 同步, 多设备互联, IPv6 地址">
+  <link rel="canonical" href="https://www.ipstun.cn/">
+  <meta property="og:title" content="ipstun - 多设备外网 IP 实时同步">
+  <meta property="og:description" content="通过 IPv6 实时同步你的设备外网 IP，让手机、电脑、NAS 之间直接找到彼此。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.ipstun.cn/">
+  <meta property="og:site_name" content="IP 查询指南">
+  <meta name="twitter:card" content="summary">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,10 +31,10 @@
   </nav>
 
   <header class="hero hero-centered">
-    <h1>快速查看你的公网 IP 与 IPv6</h1>
-    <p>一键检测你当前访问互联网的真实 IP，自动识别是 IPv4 还是 IPv6。无需安装任何软件，打开即用。</p>
+    <h1>让设备之间实时找到彼此</h1>
+    <p>通过 IPv6 与本站同步服务，随时随地获取你任意设备当前的外网 IP。手机、电脑、NAS，扫码即可直连。</p>
     <div class="hero-actions hero-actions-row">
-      <button type="button" id="hero-check-my-ip" class="btn btn-primary btn-large">查看我的 IP</button>
+      <button type="button" id="hero-check-my-ip" class="btn btn-primary btn-large">查看本机 IP</button>
       <a class="btn btn-secondary" href="how-it-works.html">这是什么原理？</a>
     </div>
     <div id="hero-myip-result" class="query-result hidden" style="margin-top: 1.5rem; text-align: left;">
@@ -35,24 +44,6 @@
   </header>
 
   <main class="container">
-    <section class="feature-section">
-      <h2 class="section-title">这个工具能做什么？</h2>
-      <div class="card-grid">
-        <div class="card card-highlight">
-          <h3>查看公网 IP</h3>
-          <p>快速知道你当前对外访问互联网时使用的 IP 地址，以及是 IPv4 还是 IPv6。</p>
-        </div>
-        <div class="card">
-          <h3>同步设备 IP</h3>
-          <p>在浏览器或桌面小软件中持续上报本机 IP，随时从其他设备查询最新地址。</p>
-        </div>
-        <div class="card">
-          <h3>二维码分享</h3>
-          <p>生成设备密钥二维码，手机一扫即可查询该设备的实时 IP。</p>
-        </div>
-      </div>
-    </section>
-
     <section>
       <h2 class="section-title">为什么需要关注 IPv6？</h2>
       <p class="lead">IPv4 地址已经接近枯竭，而 IPv6 提供了几乎无限的地址空间，是未来互联网的主流协议。很多家庭宽带其实已经分配了 IPv6，只是你不知道怎么查看。</p>
@@ -73,34 +64,40 @@
     </section>
 
     <section>
-      <h2 class="section-title">浏览器端持续同步本机 IP</h2>
-      <p class="lead">保持本页面打开，浏览器会每隔 30 秒检测一次你的公网 IP，并自动更新到 KV。适合临时使用；长期运行建议用桌面小软件，避免 device_key 留在浏览器中。</p>
+      <h2 class="section-title">同步本机 IP</h2>
+      <p class="lead">下面是你当前设备的 device_key 和二维码。保持本页面打开并开启监听，浏览器会每 30 秒检测一次你的公网 IP 并自动上报。长期运行建议用桌面小软件，避免 device_key 留在浏览器中。</p>
       <div class="card">
-        <form id="monitor-form">
-          <div class="form-group">
-            <label for="monitor-device-key">device_key</label>
-            <input type="text" id="monitor-device-key" name="device_key" placeholder="留空则自动生成" required>
+        <div id="device-key-display" class="device-key-display hidden">
+          <div class="key-row">
+            <label>device_key（查询和更新都用它，请勿泄露）</label>
+            <code id="device-key-value"></code>
           </div>
+          <div id="device-key-qrcode" class="qrcode-container"></div>
+          <p class="empty">扫码即可从其他设备查询本机实时 IP。</p>
+        </div>
+
+        <form id="monitor-form">
+          <input type="hidden" id="monitor-device-key" name="device_key">
           <div class="form-group">
             <label for="monitor-device-name">设备名（可选）</label>
             <input type="text" id="monitor-device-name" name="device_name" placeholder="例如：办公室电脑">
           </div>
           <div class="form-actions">
             <button type="submit" id="monitor-toggle" class="btn btn-primary">开启监听</button>
-            <button type="button" id="monitor-auto" class="btn btn-secondary">生成密钥并开启监听</button>
+            <button type="button" id="regenerate-key" class="btn btn-secondary">重新生成密钥</button>
           </div>
         </form>
+
         <div id="monitor-result" class="query-result hidden">
           <h3>监听状态</h3>
           <div id="monitor-result-content"></div>
-          <div id="monitor-qrcode-container" class="qrcode-container"></div>
         </div>
       </div>
     </section>
 
     <section>
       <h2 class="section-title">查询已同步设备的 IP</h2>
-      <p class="lead">如果你已经在某台设备上运行了同步工具，只要输入设备的 device_key，就能查看它当前的 IPv6 / IPv4 地址。也可以直接扫描二维码。</p>
+      <p class="lead">如果你已经在某台设备上运行了同步工具或浏览器监听，只要输入设备的 device_key，就能查看它当前的 IPv6 / IPv4 地址。也可以直接扫描二维码。</p>
       <div class="card">
         <form id="query-form">
           <div class="form-group">
@@ -114,21 +111,6 @@
         <div id="query-result" class="query-result hidden">
           <h3>查询结果</h3>
           <div id="query-result-content"></div>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2 class="section-title">生成新设备密钥</h2>
-      <p class="lead">为小软件生成一个新的 device_key，同时用于查询和更新 IP。请妥善保存，不要泄露给不信任的人。</p>
-      <div class="card">
-        <div class="form-actions">
-          <button type="button" id="generate-keys" class="btn btn-primary">生成密钥</button>
-        </div>
-        <div id="keys-result" class="query-result hidden">
-          <h3>密钥信息</h3>
-          <div id="keys-result-content"></div>
-          <div id="qrcode-container" class="qrcode-container"></div>
         </div>
       </div>
     </section>

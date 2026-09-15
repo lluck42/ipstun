@@ -109,11 +109,12 @@
     });
   }
 
-  // Generate device_key with QR code
-  const generateKeysBtn = document.getElementById('generate-keys');
-  const keysResult = document.getElementById('keys-result');
-  const keysResultContent = document.getElementById('keys-result-content');
-  const qrcodeContainer = document.getElementById('qrcode-container');
+  // Device key display and management
+  const deviceKeyDisplay = document.getElementById('device-key-display');
+  const deviceKeyValue = document.getElementById('device-key-value');
+  const deviceKeyQrcode = document.getElementById('device-key-qrcode');
+  const regenerateKeyBtn = document.getElementById('regenerate-key');
+  const monitorDeviceKeyInput = document.getElementById('monitor-device-key');
 
   const DEVICE_KEY_COOKIE_NAME = 'ipstun_device_key';
   const DEVICE_KEY_COOKIE_DAYS = 30;
@@ -128,24 +129,17 @@
     return match ? decodeURIComponent(match[2]) : null;
   }
 
-  function renderGeneratedKey(deviceKey) {
-    if (!keysResult || !keysResultContent || !qrcodeContainer) return;
+  function renderDeviceKey(deviceKey) {
+    if (!deviceKeyDisplay || !deviceKeyValue || !deviceKeyQrcode) return;
 
     const key = deviceKey || generateUuid();
     const shareUrl = `${window.location.origin}/?device_key=${encodeURIComponent(key)}`;
 
-    keysResult.classList.remove('hidden');
-    keysResultContent.innerHTML = `
-      <div class="key-row">
-        <label>device_key（查询和更新都用它，请勿泄露）</label>
-        <code>${escapeHtml(key)}</code>
-      </div>
-      <p class="empty">扫描二维码即可查询该设备 IP。</p>
-    `;
-
-    qrcodeContainer.innerHTML = '';
+    deviceKeyDisplay.classList.remove('hidden');
+    deviceKeyValue.textContent = key;
+    deviceKeyQrcode.innerHTML = '';
     // eslint-disable-next-line no-undef
-    new QRCode(qrcodeContainer, {
+    new QRCode(deviceKeyQrcode, {
       text: shareUrl,
       width: 180,
       height: 180,
@@ -154,23 +148,24 @@
       correctLevel: QRCode.CorrectLevel.M
     });
 
+    if (monitorDeviceKeyInput) {
+      monitorDeviceKeyInput.value = key;
+    }
+
     setDeviceKeyCookie(key);
 
     return key;
   }
 
-  if (generateKeysBtn) {
-    generateKeysBtn.addEventListener('click', () => {
-      renderGeneratedKey();
+  if (regenerateKeyBtn) {
+    regenerateKeyBtn.addEventListener('click', () => {
+      renderDeviceKey();
     });
   }
 
   // 页面加载时：优先使用 cookie 中保存的 device_key，否则自动生成
   const storedKey = getDeviceKeyCookie();
-  const initialKey = renderGeneratedKey(storedKey);
-  if (initialKey) {
-    generateKeysBtn.textContent = storedKey ? '重新生成密钥' : '生成密钥';
-  }
+  renderDeviceKey(storedKey);
 
   // Check my public IP
   function bindCheckMyIp(buttonId, resultId, contentId) {
@@ -211,10 +206,8 @@
   // Browser-side IP monitor
   const monitorForm = document.getElementById('monitor-form');
   const monitorToggle = document.getElementById('monitor-toggle');
-  const monitorAuto = document.getElementById('monitor-auto');
   const monitorResult = document.getElementById('monitor-result');
   const monitorResultContent = document.getElementById('monitor-result-content');
-  const monitorQrcodeContainer = document.getElementById('monitor-qrcode-container');
 
   let monitorTimer = null;
   let isMonitoring = false;
@@ -237,53 +230,13 @@
       if (!deviceKey) {
         deviceKey = generateUuid();
         deviceKeyInput.value = deviceKey;
+        renderDeviceKey(deviceKey);
       }
 
       const deviceName = deviceNameInput.value.trim();
-      renderMonitorKey(deviceKey);
+      monitorResult.classList.remove('hidden');
       startMonitor(deviceKey, deviceName);
     });
-  }
-
-  if (monitorAuto && monitorForm) {
-    monitorAuto.addEventListener('click', () => {
-      const deviceKeyInput = monitorForm.querySelector('[name="device_key"]');
-      const deviceNameInput = monitorForm.querySelector('[name="device_name"]');
-
-      const deviceKey = generateUuid();
-      deviceKeyInput.value = deviceKey;
-
-      const deviceName = deviceNameInput.value.trim();
-      renderMonitorKey(deviceKey);
-      startMonitor(deviceKey, deviceName);
-    });
-  }
-
-  function renderMonitorKey(deviceKey) {
-    if (!monitorResult || !monitorResultContent) return;
-
-    monitorResult.classList.remove('hidden');
-    monitorResultContent.innerHTML = `
-      <div class="key-row">
-        <label>device_key（查询和更新都用它，请勿泄露）</label>
-        <code>${escapeHtml(deviceKey)}</code>
-      </div>
-      <p class="empty">请保存好以上密钥，刷新页面后将无法找回。</p>
-    `;
-
-    if (monitorQrcodeContainer) {
-      const shareUrl = `${window.location.origin}/?device_key=${encodeURIComponent(deviceKey)}`;
-      monitorQrcodeContainer.innerHTML = '';
-      // eslint-disable-next-line no-undef
-      new QRCode(monitorQrcodeContainer, {
-        text: shareUrl,
-        width: 180,
-        height: 180,
-        colorDark: '#1f2937',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-    }
   }
 
   function startMonitor(deviceKey, deviceName) {
@@ -291,7 +244,7 @@
     monitorToggle.textContent = '关闭监听';
     monitorToggle.classList.remove('btn-primary');
     monitorToggle.classList.add('btn-secondary');
-    monitorAuto.disabled = true;
+    regenerateKeyBtn.disabled = true;
 
     const inputs = monitorForm.querySelectorAll('input');
     inputs.forEach((input) => {
@@ -315,7 +268,7 @@
     monitorToggle.textContent = '开启监听';
     monitorToggle.classList.remove('btn-secondary');
     monitorToggle.classList.add('btn-primary');
-    monitorAuto.disabled = false;
+    regenerateKeyBtn.disabled = false;
 
     const inputs = monitorForm.querySelectorAll('input');
     inputs.forEach((input) => {

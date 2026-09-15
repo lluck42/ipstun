@@ -459,6 +459,31 @@ a:hover {
   font-size: 0.9rem;
 }
 
+.device-key-display {
+  text-align: center;
+  padding: 1rem 0 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.device-key-display.hidden {
+  display: none;
+}
+
+.device-key-display .key-row {
+  text-align: left;
+  max-width: 480px;
+  margin: 0 auto 1rem;
+}
+
+.device-key-display .qrcode-container {
+  margin: 1rem 0;
+}
+
+.device-key-display > .empty {
+  margin: 0;
+}
+
 /* Footer */
 .site-footer {
   text-align: center;

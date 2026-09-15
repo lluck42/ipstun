@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-`ipstun` 是一个计划用于承载“ipstun 科普教程”的仓库。目前已建成一个基于 Cloudflare Pages + Pages Functions 的站点，前端科普如何查看自己的 IP 地址（尤其是 IPv6），后端通过 Cloudflare KV 提供简单的 IPv6 地址上报与查询接口，并预留了一个 Windows 小工具的下载页面。小工具计划解决“家宽 IPv6 前缀动态变化”的问题：实时监测本机 IPv6 并上报到本站后端，让外网设备始终能通过本站查询到最新地址。站点前端由纯 HTML / CSS / JavaScript 编写，后端由 Cloudflare Pages Functions 提供。
+`ipstun` 是一个基于 Cloudflare Pages + Pages Functions 的多设备外网 IP 实时同步小站。前端提供本机 IP 检测、设备 IP 同步与查询、二维码分享以及 IPv6 科普教程，后端通过 Cloudflare KV 存储每个设备最新的 IPv6 / IPv4 地址。小工具计划解决“家宽 IPv6 前缀动态变化”的问题：实时监测本机 IPv6 并上报到本站后端，让外网设备始终能通过本站查询到最新地址。站点前端由纯 HTML / CSS / JavaScript 编写，后端由 Cloudflare Pages Functions 提供。
 
 - 项目名称：ipstun
 - 仓库地址：`git@gitee.com:lluck42/ipstun.git`
