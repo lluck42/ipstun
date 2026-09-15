@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>技术原理 | IP 查询指南</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="logo" href="index.html">IP 查询指南</a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a class="active" href="how-it-works.html">技术原理</a></li>
+        <li><a href="guide.html">查看教程</a></li>
+        <li><a href="download.html">下载工具</a></li>
+        <li><a href="changelog.html">更新记录</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>技术原理</h1>
+    <p>本站如何检测到你的公网 IP，以及设备之间如何通过 IPv6 直接通信。</p>
+  </header>
+
+  <main class="container article">
+    <section>
+      <h2>一、怎么知道我的公网 IP？</h2>
+      <p>当你访问任何一个网站时，你的设备会先向服务器发送一个 HTTP 请求。在这个请求的 TCP/IP 包头里，就携带了你当前用于连接互联网的源 IP 地址。</p>
+      <p>本站部署在 Cloudflare Pages 上，Cloudflare 会在请求到达本站代码之前，把客户端的真实 IP 放进一个名为 <code>CF-Connecting-IP</code> 的 HTTP Header 中。本站的后端接口 <code>/api/myip</code> 读取这个 Header，就能返回你的公网 IP。</p>
+      <div class="info-box">
+        <strong>简单理解：</strong>你不是“查”自己的 IP，而是让服务器告诉你“它看到的你的 IP 是多少”。
+      </div>
+    </section>
+
+    <section>
+      <h2>二、怎么判断是 IPv4 还是 IPv6？</h2>
+      <p>IP 地址里如果包含冒号 <code>:</code>，就是 IPv6；如果只包含点号 <code>.</code>，就是 IPv4。本站根据这个特征自动判断协议版本。</p>
+      <ul>
+        <li>IPv4 示例：<code>203.0.113.45</code></li>
+        <li>IPv6 示例：<code>240e:1234:5678::1</code></li>
+      </ul>
+      <p>如果你通过 IPv6 访问本站，<code>/api/myip</code> 返回的就是你的公网 IPv6；如果是 IPv4 访问，返回的就是公网 IPv4。</p>
+    </section>
+
+    <section>
+      <h2>三、IPv6 为什么能让设备直接通信？</h2>
+      <p>在 IPv4 时代，家用宽带通常没有独立的公网 IPv4，而是经过运营商 NAT（网络地址转换）共享一个公网地址。这导致两台家庭设备无法直接找到对方。</p>
+      <p>IPv6 地址空间极大，运营商通常会直接给每个上网设备分配一个公网 IPv6 地址。只要你的设备有公网 IPv6，并且防火墙允许对应端口，其他设备就可以通过互联网直接访问它，不再需要中转服务器。</p>
+      <div class="info-box warning">
+        <strong>注意：</strong>直接暴露在互联网上也意味着要注意安全。建议只开放必要的端口，并启用系统防火墙。
+      </div>
+    </section>
+
+    <section>
+      <h2>四、本站怎么同步设备 IP？</h2>
+      <p>本站使用 Cloudflare KV 作为轻量级数据库，每个设备用一个 UUID（本站称为 <code>device_key</code>）作为标识。设备上的浏览器或小软件定时调用 <code>/api/myip</code> 获取当前 IP，再通过 <code>POST /api/report</code> 把 IP 和设备名存到 KV 中。</p>
+      <p>当你想查询某台设备的最新 IP 时，只需要在首页输入它的 <code>device_key</code>，本站就会从 KV 中读取并返回。</p>
+    </section>
+
+    <section>
+      <h2>五、数据存在哪里？安全吗？</h2>
+      <p>数据存储在 Cloudflare KV 中，这是一种全球分布式的键值存储。本站只保存设备名、IP 地址和更新时间，不保存密码、也不记录用户身份。</p>
+      <p>由于目前使用单个 <code>device_key</code> 同时作为查询和更新凭证，任何知道该密钥的人都能查看或更新对应设备的 IP。因此请不要把 device_key 泄露给不信任的人。</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

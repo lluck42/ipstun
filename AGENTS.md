@@ -14,17 +14,19 @@
 
 ```
 .
-├── index.html                        # 站点首页：IP / IPv6 科普入口 + 设备 IP 查询 + 浏览器端监听
+├── index.html                        # 站点首页：主推公网 IP 检测 + 设备 IP 同步
+├── how-it-works.html                 # 技术原理页：解释 IP 检测与 IPv6 直连原理
 ├── guide.html                        # 详细教程：各平台查看 IP 与 IPv6 的方法
 ├── download.html                     # 小工具下载页（软件尚未发布，当前为占位）
+├── changelog.html                    # 更新记录页
 ├── style.css                         # 站点共用样式
-├── script.js                         # 导航、代码块复制、设备 IP 查询、密钥生成与浏览器端持续同步
+├── script.js                         # 导航、代码块复制、公网 IP 检测、设备 IP 查询、密钥生成、浏览器端持续同步与百度统计
 ├── functions/                        # Cloudflare Pages Functions（后端接口）
 │   └── api/
 │       ├── myip.js                   # GET /api/myip：返回访问者当前公网 IP 与协议版本
-│       ├── report.js                 # POST /api/report：凭 read_key + write_key 上报 IPv6
+│       ├── report.js                 # POST /api/report：凭 device_key 上报 IPv6
 │       └── devices/
-│           └── [read_key].js         # GET /api/devices/:read_key：查询设备最新 IP
+│           └── [device_key].js       # GET /api/devices/:device_key：查询设备最新 IP
 ├── wrangler.toml                     # Cloudflare 部署与 KV 绑定配置
 ├── package.json                      # 开发依赖与部署脚本
 ├── .gitignore                        # Git 忽略规则
@@ -41,7 +43,7 @@
 
 - 前端：HTML5、CSS3、原生 JavaScript（ES6），位于仓库根目录
 - 后端：Cloudflare Pages Functions（基于 Workers 运行时的服务端函数），位于 `functions/`
-- 数据存储：Cloudflare KV（绑定变量名为 `user-device`），用于存储每个设备最新的 IPv6 地址。每个设备用 **read_key（UUID）** 作为 KV key，value 中保存设备名、IPv6/IPv4、write_key 哈希（SHA-256）和更新时间
+- 数据存储：Cloudflare KV（绑定变量名为 `user-device`），用于存储每个设备最新的 IPv6 地址。每个设备用 **device_key（UUID）** 作为 KV key，value 中保存设备名、IPv6/IPv4 和更新时间
 - 部署平台：Cloudflare Pages（静态资源 + Functions 一起部署）
 - 本地开发：`wrangler pages dev .`
 - 小工具：计划为 Windows 桌面程序，核心功能是“IPv6 地址监测 + 上报到本站后端”。技术栈待定（如 C# / Python / Go 等），开发完成后会把可执行文件或下载链接更新到 `download.html`
@@ -106,11 +108,12 @@
 ## 安全注意事项
 
 - 当前仓库没有存储任何凭证或敏感信息；`wrangler.toml` 中的 KV ID 仅为资源标识符，API Token 等 Secrets 不应写入仓库。
-- `script.js` 实现导航、代码块复制、设备 IP 查询、read_key / write_key 生成、当前公网 IP 检测以及浏览器端持续同步；查询时只通过 GET 请求访问 `/api/devices/:read_key`，不会上传 write_key 等敏感信息。
-- 浏览器端“开启监听”功能会把 write_key 保留在页面内存中并定时上报，存在被 XSS 或本地恶意软件读取的风险，建议仅临时使用；长期自动同步请使用桌面小软件。
+- `script.js` 实现导航、代码块复制、设备 IP 查询、device_key 生成、当前公网 IP 检测、浏览器端持续同步以及百度统计。
+- 浏览器端“开启监听”功能会把 device_key 保留在页面内存中并定时上报，存在被 XSS 或本地恶意软件读取的风险，建议仅临时使用；长期自动同步请使用桌面小软件。
+- 页面中已接入百度统计脚本，用于了解访问量与页面使用情况。
 - 后续开发中请勿将 `.env`、私钥、密码、令牌等敏感文件提交到仓库。
 - 仓库已配置 `.gitignore`，避免提交 `node_modules`、`.wrangler`、本地配置以及 Windows 小工具的构建产物。
-- KV 中存储的是用户设备的 IPv6 地址和 write_key 哈希（SHA-256），属于网络层与认证信息，应注意隐私保护：写入接口需校验 write_key，查询接口不得返回 write_key 或其哈希。
+- KV 中存储的是用户设备的 IPv6 地址和 device_key，属于网络层信息，应注意隐私保护：知道 device_key 即可查询和更新该设备 IP，请勿泄露。
 
 ## 给后续 AI 编码助手的提示
 

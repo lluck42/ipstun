@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>更新记录 | IP 查询指南</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="logo" href="index.html">IP 查询指南</a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="how-it-works.html">技术原理</a></li>
+        <li><a href="guide.html">查看教程</a></li>
+        <li><a href="download.html">下载工具</a></li>
+        <li><a class="active" href="changelog.html">更新记录</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>更新记录</h1>
+    <p>记录每次上线的主要功能。</p>
+  </header>
+
+  <main class="container article">
+    <section>
+      <h2>2026-09-15</h2>
+      <ul>
+        <li>新增更新记录页</li>
+        <li>新增百度统计</li>
+        <li>新增 /api/myip，可查看当前公网 IP 与协议版本</li>
+        <li>首页突出公网 IP 查询功能</li>
+        <li>新增技术原理页</li>
+        <li>新增浏览器端 IP 监听同步（每 30 秒上报一次）</li>
+        <li>设备鉴权简化为单个 device_key（UUID）</li>
+        <li>新增密钥二维码生成</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>2026-09-14</h2>
+      <ul>
+        <li>上线 Cloudflare Pages 全栈站点</li>
+        <li>完成首页、教程页、下载页</li>
+        <li>实现基于 KV 的 IPv6 上报与查询接口</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

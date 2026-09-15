@@ -39,7 +39,6 @@
           button.textContent = '复制';
         }, 1500);
       } catch (err) {
-        // Fallback for older browsers or non-secure contexts
         const textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'fixed';
@@ -70,17 +69,17 @@
   if (queryForm && queryResult && queryResultContent) {
     queryForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const readKey = queryForm.querySelector('[name="read_key"]').value.trim();
-      if (!readKey) return;
+      const deviceKey = queryForm.querySelector('[name="device_key"]').value.trim();
+      if (!deviceKey) return;
 
       queryResult.classList.remove('hidden');
       queryResultContent.innerHTML = '<p class="empty">查询中...</p>';
 
       try {
-        const response = await fetch(`/api/devices/${encodeURIComponent(readKey)}`);
+        const response = await fetch(`/api/devices/${encodeURIComponent(deviceKey)}`);
         if (!response.ok) {
           if (response.status === 404) {
-            queryResultContent.innerHTML = '<p class="empty">未找到该设备，请检查 read_key 是否正确。</p>';
+            queryResultContent.innerHTML = '<p class="empty">未找到该设备，请检查 device_key 是否正确。</p>';
           } else {
             queryResultContent.innerHTML = `<p class="error">查询失败（状态码 ${response.status}）</p>`;
           }
@@ -90,7 +89,7 @@
         const data = await response.json();
         const ipv6 = data.ipv6 || '无';
         const ipv4 = data.ipv4 || '无';
-        const deviceName = data.device_name || readKey.slice(0, 8);
+        const deviceName = data.device_name || deviceKey.slice(0, 8);
         const updatedAt = data.updated_at
           ? new Date(data.updated_at).toLocaleString('zh-CN')
           : '未知';
@@ -98,7 +97,7 @@
         queryResultContent.innerHTML = `
           <dl>
             <dt>设备名</dt><dd>${escapeHtml(deviceName)}</dd>
-            <dt>read_key</dt><dd>${escapeHtml(data.read_key || readKey)}</dd>
+            <dt>device_key</dt><dd>${escapeHtml(data.device_key || deviceKey)}</dd>
             <dt>IPv6</dt><dd>${escapeHtml(ipv6)}</dd>
             <dt>IPv4</dt><dd>${escapeHtml(ipv4)}</dd>
             <dt>更新时间</dt><dd>${escapeHtml(updatedAt)}</dd>
@@ -110,80 +109,112 @@
     });
   }
 
-  // Generate read_key / write_key pair with QR code
+  // Generate device_key with QR code
   const generateKeysBtn = document.getElementById('generate-keys');
   const keysResult = document.getElementById('keys-result');
   const keysResultContent = document.getElementById('keys-result-content');
   const qrcodeContainer = document.getElementById('qrcode-container');
 
-  if (generateKeysBtn && keysResult && keysResultContent && qrcodeContainer) {
-    generateKeysBtn.addEventListener('click', () => {
-      const readKey = generateUuid();
-      const writeKey = generateUuid();
-      const shareUrl = `${window.location.origin}/?read_key=${encodeURIComponent(readKey)}`;
+  const DEVICE_KEY_COOKIE_NAME = 'ipstun_device_key';
+  const DEVICE_KEY_COOKIE_DAYS = 30;
 
-      keysResult.classList.remove('hidden');
-      keysResultContent.innerHTML = `
-        <div class="key-row">
-          <label>read_key（查询 / 分享用）</label>
-          <code>${escapeHtml(readKey)}</code>
-        </div>
-        <div class="key-row">
-          <label>write_key（仅小软件更新用，请勿分享）</label>
-          <code>${escapeHtml(writeKey)}</code>
-        </div>
-        <p class="empty">扫描二维码即可查询该设备 IP。</p>
-      `;
+  function setDeviceKeyCookie(value) {
+    const expires = new Date(Date.now() + DEVICE_KEY_COOKIE_DAYS * 864e5).toUTCString();
+    document.cookie = `${DEVICE_KEY_COOKIE_NAME}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  }
 
-      qrcodeContainer.innerHTML = '';
-      // eslint-disable-next-line no-undef
-      new QRCode(qrcodeContainer, {
-        text: shareUrl,
-        width: 180,
-        height: 180,
-        colorDark: '#1f2937',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
+  function getDeviceKeyCookie() {
+    const match = document.cookie.match(new RegExp('(^| )' + DEVICE_KEY_COOKIE_NAME + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  function renderGeneratedKey(deviceKey) {
+    if (!keysResult || !keysResultContent || !qrcodeContainer) return;
+
+    const key = deviceKey || generateUuid();
+    const shareUrl = `${window.location.origin}/?device_key=${encodeURIComponent(key)}`;
+
+    keysResult.classList.remove('hidden');
+    keysResultContent.innerHTML = `
+      <div class="key-row">
+        <label>device_key（查询和更新都用它，请勿泄露）</label>
+        <code>${escapeHtml(key)}</code>
+      </div>
+      <p class="empty">扫描二维码即可查询该设备 IP。</p>
+    `;
+
+    qrcodeContainer.innerHTML = '';
+    // eslint-disable-next-line no-undef
+    new QRCode(qrcodeContainer, {
+      text: shareUrl,
+      width: 180,
+      height: 180,
+      colorDark: '#1f2937',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
     });
+
+    setDeviceKeyCookie(key);
+
+    return key;
+  }
+
+  if (generateKeysBtn) {
+    generateKeysBtn.addEventListener('click', () => {
+      renderGeneratedKey();
+    });
+  }
+
+  // 页面加载时：优先使用 cookie 中保存的 device_key，否则自动生成
+  const storedKey = getDeviceKeyCookie();
+  const initialKey = renderGeneratedKey(storedKey);
+  if (initialKey) {
+    generateKeysBtn.textContent = storedKey ? '重新生成密钥' : '生成密钥';
   }
 
   // Check my public IP
-  const checkMyIpBtn = document.getElementById('check-my-ip');
-  const myipResult = document.getElementById('myip-result');
-  const myipResultContent = document.getElementById('myip-result-content');
+  function bindCheckMyIp(buttonId, resultId, contentId) {
+    const checkMyIpBtn = document.getElementById(buttonId);
+    const myipResult = document.getElementById(resultId);
+    const myipResultContent = document.getElementById(contentId);
 
-  if (checkMyIpBtn && myipResult && myipResultContent) {
-    checkMyIpBtn.addEventListener('click', async () => {
-      myipResult.classList.remove('hidden');
-      myipResultContent.innerHTML = '<p class="empty">检测中...</p>';
+    if (checkMyIpBtn && myipResult && myipResultContent) {
+      checkMyIpBtn.addEventListener('click', async () => {
+        myipResult.classList.remove('hidden');
+        myipResultContent.innerHTML = '<p class="empty">检测中...</p>';
 
-      try {
-        const response = await fetch('/api/myip');
-        if (!response.ok) {
-          myipResultContent.innerHTML = `<p class="error">检测失败（状态码 ${response.status}）</p>`;
-          return;
+        try {
+          const response = await fetch('/api/myip');
+          if (!response.ok) {
+            myipResultContent.innerHTML = `<p class="error">检测失败（状态码 ${response.status}）</p>`;
+            return;
+          }
+
+          const data = await response.json();
+          myipResultContent.innerHTML = `
+            <dl>
+              <dt>公网 IP</dt><dd>${escapeHtml(data.ip)}</dd>
+              <dt>协议版本</dt><dd>${escapeHtml(data.version)}</dd>
+            </dl>
+            <p class="empty" style="margin-top:0.75rem">如果你看到的是 IPv6，说明当前网络支持 IPv6。</p>
+          `;
+        } catch (err) {
+          myipResultContent.innerHTML = `<p class="error">检测出错：${escapeHtml(err.message)}</p>`;
         }
-
-        const data = await response.json();
-        myipResultContent.innerHTML = `
-          <dl>
-            <dt>公网 IP</dt><dd>${escapeHtml(data.ip)}</dd>
-            <dt>协议版本</dt><dd>${escapeHtml(data.version)}</dd>
-          </dl>
-          <p class="empty" style="margin-top:0.75rem">如果你看到的是 IPv6，说明当前网络支持 IPv6。</p>
-        `;
-      } catch (err) {
-        myipResultContent.innerHTML = `<p class="error">检测出错：${escapeHtml(err.message)}</p>`;
-      }
-    });
+      });
+    }
   }
+
+  bindCheckMyIp('check-my-ip', 'myip-result', 'myip-result-content');
+  bindCheckMyIp('hero-check-my-ip', 'hero-myip-result', 'hero-myip-result-content');
 
   // Browser-side IP monitor
   const monitorForm = document.getElementById('monitor-form');
   const monitorToggle = document.getElementById('monitor-toggle');
+  const monitorAuto = document.getElementById('monitor-auto');
   const monitorResult = document.getElementById('monitor-result');
   const monitorResultContent = document.getElementById('monitor-result-content');
+  const monitorQrcodeContainer = document.getElementById('monitor-qrcode-container');
 
   let monitorTimer = null;
   let isMonitoring = false;
@@ -198,22 +229,69 @@
         return;
       }
 
-      const readKey = monitorForm.querySelector('[name="read_key"]').value.trim();
-      const writeKey = monitorForm.querySelector('[name="write_key"]').value.trim();
-      const deviceName = monitorForm.querySelector('[name="device_name"]').value.trim();
+      const deviceKeyInput = monitorForm.querySelector('[name="device_key"]');
+      const deviceNameInput = monitorForm.querySelector('[name="device_name"]');
 
-      if (!readKey || !writeKey) return;
+      let deviceKey = deviceKeyInput.value.trim();
 
-      startMonitor(readKey, writeKey, deviceName);
+      if (!deviceKey) {
+        deviceKey = generateUuid();
+        deviceKeyInput.value = deviceKey;
+      }
+
+      const deviceName = deviceNameInput.value.trim();
+      renderMonitorKey(deviceKey);
+      startMonitor(deviceKey, deviceName);
     });
   }
 
-  function startMonitor(readKey, writeKey, deviceName) {
+  if (monitorAuto && monitorForm) {
+    monitorAuto.addEventListener('click', () => {
+      const deviceKeyInput = monitorForm.querySelector('[name="device_key"]');
+      const deviceNameInput = monitorForm.querySelector('[name="device_name"]');
+
+      const deviceKey = generateUuid();
+      deviceKeyInput.value = deviceKey;
+
+      const deviceName = deviceNameInput.value.trim();
+      renderMonitorKey(deviceKey);
+      startMonitor(deviceKey, deviceName);
+    });
+  }
+
+  function renderMonitorKey(deviceKey) {
+    if (!monitorResult || !monitorResultContent) return;
+
+    monitorResult.classList.remove('hidden');
+    monitorResultContent.innerHTML = `
+      <div class="key-row">
+        <label>device_key（查询和更新都用它，请勿泄露）</label>
+        <code>${escapeHtml(deviceKey)}</code>
+      </div>
+      <p class="empty">请保存好以上密钥，刷新页面后将无法找回。</p>
+    `;
+
+    if (monitorQrcodeContainer) {
+      const shareUrl = `${window.location.origin}/?device_key=${encodeURIComponent(deviceKey)}`;
+      monitorQrcodeContainer.innerHTML = '';
+      // eslint-disable-next-line no-undef
+      new QRCode(monitorQrcodeContainer, {
+        text: shareUrl,
+        width: 180,
+        height: 180,
+        colorDark: '#1f2937',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+  }
+
+  function startMonitor(deviceKey, deviceName) {
     isMonitoring = true;
     monitorToggle.textContent = '关闭监听';
     monitorToggle.classList.remove('btn-primary');
     monitorToggle.classList.add('btn-secondary');
-    monitorResult.classList.remove('hidden');
+    monitorAuto.disabled = true;
 
     const inputs = monitorForm.querySelectorAll('input');
     inputs.forEach((input) => {
@@ -221,9 +299,9 @@
       input.disabled = true;
     });
 
-    reportCurrentIp(readKey, writeKey, deviceName);
+    reportCurrentIp(deviceKey, deviceName);
     monitorTimer = setInterval(() => {
-      reportCurrentIp(readKey, writeKey, deviceName);
+      reportCurrentIp(deviceKey, deviceName);
     }, MONITOR_INTERVAL_MS);
   }
 
@@ -237,6 +315,7 @@
     monitorToggle.textContent = '开启监听';
     monitorToggle.classList.remove('btn-secondary');
     monitorToggle.classList.add('btn-primary');
+    monitorAuto.disabled = false;
 
     const inputs = monitorForm.querySelectorAll('input');
     inputs.forEach((input) => {
@@ -248,10 +327,11 @@
     `;
   }
 
-  async function reportCurrentIp(readKey, writeKey, deviceName) {
-    monitorResultContent.innerHTML = `
-      <p class="empty">正在检测并上报... ${new Date().toLocaleTimeString('zh-CN')}</p>
-    `;
+  async function reportCurrentIp(deviceKey, deviceName) {
+    const statusEl = document.createElement('p');
+    statusEl.className = 'empty';
+    statusEl.textContent = `正在检测并上报... ${new Date().toLocaleTimeString('zh-CN')}`;
+    monitorResultContent.appendChild(statusEl);
 
     try {
       const myipResponse = await fetch('/api/myip');
@@ -261,9 +341,8 @@
       const myip = await myipResponse.json();
 
       const payload = {
-        read_key: readKey,
-        write_key: writeKey,
-        device_name: deviceName || readKey.slice(0, 8),
+        device_key: deviceKey,
+        device_name: deviceName || deviceKey.slice(0, 8),
         ipv6: myip.version === 'IPv6' ? myip.ip : '',
         ipv4: myip.version === 'IPv4' ? myip.ip : ''
       };
@@ -279,6 +358,7 @@
         throw new Error(errData.error || `上报失败 ${reportResponse.status}`);
       }
 
+      statusEl.remove();
       monitorResultContent.innerHTML = `
         <dl>
           <dt>状态</dt><dd>已上报</dd>
@@ -287,6 +367,7 @@
         </dl>
       `;
     } catch (err) {
+      statusEl.remove();
       monitorResultContent.innerHTML = `<p class="error">上报出错：${escapeHtml(err.message)}</p>`;
     }
   }
