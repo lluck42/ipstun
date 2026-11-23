@@ -1,63 +1,66 @@
-# ipstun 扩展：P2P 网络引导节点目录
+# p2p.html 新增"加入网络"功能：浏览器即节点（IPFS 主网）
 
 ## Context
 
-ipstun 目前是"个人设备外网 IP 地址簿"（device_key → 最新 IPv6/IPv4）。用户希望把它扩展为**面向现有 P2P 网络（IPFS 等）的开放引导节点登记处**：已入网的节点运维者把入口地址（multiaddr / ip:port / enode 等）登记上来，新成员入网时从本站拉取当前可用的入口地址列表。
+用户希望 p2p.html 的重点从"静态登记处"升级为"入网门户"：**点击按钮，当前网页就加入 P2P 网络，成为真实成员**。基于前期讨论确认的技术事实：边缘函数无常驻进程当不了节点，但浏览器页面开着时是真常驻，可通过 WSS 加入 libp2p 网络。目标网络为知名的公有网络（IPFS 主网）——用户全程的意图都是"现成网络"，且其早前说的"加入网络后会记录公共节点数据"正好由本功能实现：**浏览器成员自动发现真实在线的 WSS 节点并上报到本站登记处**，形成"越多人加入→节点目录越丰富"的飞轮。
 
-用户明确的取舍：
-- **不审核**——完全开放的"临时存储点"，只靠限流 + 数量上限 + 短 TTL 兜底
-- 服务的是**现存知名网络**，不是自建新网络；网络名单内置常见项 + 允许自定义 slug
-- "自动获取公共节点"落在上报端（未来的小工具/脚本从客户端 peer 记录采集再 POST），因为边缘 Functions 没有定时任务；本站提供被动存储 + 查询 API + 手动登记表单
+## 总体设计
 
-## 存储设计（复用现有 KV 模式）
+```
+[加入 IPFS 网络] 按钮（点击时才加载 bundle，不拖累首屏）
+  → lib/libp2p.bundle.min.js（esbuild 打包的浏览器版 js-libp2p，本地化，qrcode.min.js 惯例）
+  → 引导源（两层，闭环）：
+      1. 本站登记处 GET /api/p2p/networks/ipfs 已登记的 wss 地址
+      2. 官方 /dnsaddr/bootstrap.libp2p.io 列表（bundle 内置，经 DNS-over-HTTPS 解析——浏览器无法直接查 DNS TXT）
+  → 浏览器节点加入 IPFS 主网 DHT（clientMode：能查询、能发现、不响应服务）
+  → 每 2 分钟从 peerStore 收集新发现的 wss 地址 → 批量 POST /api/p2p/report（network=ipfs）
+  → 页面显示：PeerID（复制按钮）、连接状态、已连接 peer 数、本页已上报数
+  → 退出按钮 / 关闭页面 → node.stop()
+```
 
-- Key：`p2p:{network_slug}:{node_id}`，node_id = address 的 djb2 哈希 hex（同地址重复上报 = 幂等刷新 TTL，天然实现"大家共同保活"）
-- Value JSON：`{ network, address, note, updated_at }`
-- TTL：**7 天**（对齐"临时存储点"定位，比设备的 30 天短，迫使节点定期重报证明存活）
-- 查询：`kv.list({ prefix })` + 逐 key `get`（每网络 ≤100 节点，可接受）
+## 改动清单
 
-## 后端改动（3 个新文件，沿用现有代码风格）
+**1. 新增 bundle 构建链（package.json + 新入口源码）**
+- devDependencies：`libp2p`、`@libp2p/websockets`、`@libp2p/kad-dht`、`@libp2p/identify`、`@libp2p/noise`、`@chainsafe/libp2p-yamux`、`@chainsafe/dns-over-http-resolver`、`esbuild`
+- 新增 `scripts.build:p2p-lib`：esbuild 把 `lib/libp2p-entry.js` 打成 IIFE 单文件 `lib/libp2p.bundle.min.js`，暴露 `window.ipstunP2P.createNode(options)`（thin wrapper，配置在页面侧传入）
+- 产物提交进仓库；源码入口和构建脚本也提交，可重复构建
+- 官方 bootstrap 列表（dnsaddr 形式，peer ID 从 [go-ipfs-config/bootstrap_peers.go](https://github.com/ipfs/go-ipfs-config/blob/master/bootstrap_peers.go) 核实，不凭记忆写）内置在 wrapper 里
 
-**1. `functions/api/p2p/report.js`** — POST /api/p2p/report
-- 请求体 `{ network, address, note? }`
-- 校验：network 匹配 `/^[a-z0-9][a-z0-9-]{0,30}$/`；address trim 后 1–500 字符；note 截断 50 字符（沿用 report.js:72 的 device_name 惯例）
-- 复制 `functions/api/report.js:1-29` 的内存级限流（10 次/60 秒）
-- 每网络上限 100 个存活节点（超限返回 429，已存在地址的刷新不受限）
-- `kv.put(key, payload, { expirationTtl: 604800 })`，成功返回 `{ ok: true, network, node_id }`
+**2. p2p.html 新增"加入网络"section**（放在"网络目录"与"登记入口节点"之间，成为页面重点）
+- 说明文案 + `.info-box`（提示：页面需保持打开，关闭即离线；浏览器节点为 client 模式）
+- 按钮：`加入 IPFS 网络` / `退出网络`（复用 `btn btn-primary`，参照 index.html monitor 按钮的 start/stop 切换模式）
+- 状态区（复用 `.query-result` + `<dl>` + `copyButtonHtml()`）：PeerID、状态徽章（复用 `statusBadgeHtml`）、连接 peer 数、发现/上报计数
+- 内联脚本新增独立 IIFE 块：
+  - PeerID 密钥持久化 `localStorage`（key `ipstun_p2p_peer_key`，Ed25519），沿用 AGENTS.md 的 localStorage 惯例
+  - 点击时动态 `<script>` 注入 bundle（只加载一次）
+  - 已上报地址存页面内 `Set` 去重；每批最多 8 个（给 /api/p2p/report 的 10 次/分钟限流留余量，批量间 2 分钟）
+  - 只上报含 `/wss` 的 multiaddr（浏览器可达的才有意义）
+  - `beforeunload` → `node.stop()`（参照 script.js:686 的 beforeunload 模式）
 
-**2. `functions/api/p2p/networks.js`** — GET /api/p2p/networks
-- `list({ prefix: 'p2p:' })` 提取去重网络 slug 及存活节点数，返回 `{ networks: [{ network, count }] }`
+**3. 后端：零改动**（上报复用 POST /api/p2p/report，引导源复用 GET /api/p2p/networks/:network）
 
-**3. `functions/api/p2p/networks/[network].js`** — GET /api/p2p/networks/:network
-- 列出该网络全部存活节点，按 updated_at 降序，返回 `{ network, count, nodes: [...] }`
-- 加 `Cache-Control: public, max-age=60` 降 KV 读取压力
+**4. 配套**：changelog.html 追加条目；AGENTS.md 更新（lib/ 新增 bundle 与构建脚本说明、"浏览器即节点"架构注记、localStorage 新 key）
 
-## 前端改动
+## 关键技术决策
 
-**4. 新页面 `p2p.html`**（克隆 devices.html 骨架，导航标签"节点目录"）：
-- Hero + 介绍段 + `info-box warning`（社区登记未经审核，注意投毒风险的友好提示）
-- **网络目录**：card-grid 展示内置知名网络（IPFS、libp2p 自定义、BitTorrent DHT、Ethereum、Bitcoin、自定义…，含一句说明和官方节点文档链接）+ 各网络当前存活节点数（来自 GET /api/p2p/networks）
-- **登记表单**：网络下拉（内置 + 自定义输入）、地址输入、备注（可选）
-- **节点列表**：每网络渲染节点卡片（地址 + `copyButtonHtml()` 复制按钮 + "X 分钟前"更新时间，超过 24h 的置灰），并提供一个"全部地址"的 `.code-block`（style.css:312 已有样式、script.js:22-62 已有复制逻辑，目前全站未使用，正好启用）
-- **接口说明**：curl 示例（.code-block），供小工具/脚本对接
-- 页面内联 IIFE 脚本遵循 devices.html:79-238 模式，复用 `window.ipstunUi`（escapeHtml/copyButtonHtml），fetch 用 `encodeURIComponent`，渲染一律 escapeHtml
-
-**5. 全站导航**：8 个页面（index/devices/how-it-works/download/changelog/about/404 + p2p 自身）的 navbar 都加"节点目录"（AGENTS.md:102 规则）
-
-**6. 配套文件**：
-- `sitemap.xml` 加 p2p.html 条目
-- `changelog.html` 在 2026-11-23 段落追加本次变更
-- `AGENTS.md` 更新目录树、script.js 描述、架构说明（p2p: 前缀键、7 天 TTL、限流与上限）
-
-## 明确不做（本轮）
-
-- 服务端定时抓取官方节点列表（平台无 cron；且避免硬编码易错的官方 peer ID）
-- 登记令牌/审核机制（用户已拍板不审核）
-- Windows 小工具的自动采集（后续独立任务，届时直接调用本次的 POST API）
+- **纯 libp2p 而非 Helia**：只需要 DHT + peerStore 发现节点，不需要 IPFS 文件层，bundle 小一半
+- **kadDHT clientMode**：浏览器不做 DHT 服务端（响应查询），但能发起查询、维护路由表、发现 peer——满足"采集公共节点"目的
+- **DoH 解析器**：`@chainsafe/dns-over-http-resolver` 是 js-libp2p 生态处理浏览器 `/dnsaddr/` 的标准做法（社区与 libp2p#94 确认）
+- **点击时按需加载**：bundle 预计 400–600KB（gzip 后约 150KB），不影响不用此功能的访客
 
 ## 验证
 
-1. `npm run dev` 启动本地预览（http://localhost:8787）
-2. curl 测试：合法/非法 network slug、超长 address、note 截断、重复上报同地址（应刷新而非新增）、限流触发 429、`GET /api/p2p/networks` 与 `/api/p2p/networks/:network` 返回结构
-3. 浏览器打开 p2p.html 走通：选网络 → 登记地址 → 列表出现 → 复制按钮/`.code-block` 复制全部地址可用
-4. grep 检查 8 个页面导航一致、sitemap/changelog 已更新
+1. `npm install` 装依赖 → `npm run build:p2p-lib` 生成 bundle（确认无报错、体积合理）
+2. `npm run dev` 本地起服务，浏览器打开 p2p.html：
+   - 未点击时页面加载不受 bundle 影响（首屏正常）
+   - 点击"加入 IPFS 网络"→ PeerID 显示且刷新后保持（localStorage）→ 连接 peer 数 > 0（浏览器需能访问 bootstrap.libp2p.io，用户浏览器此前可访问 Cloudflare，预期可行）
+   - 等待采集周期后 `GET /api/p2p/networks/ipfs` 出现 wss 真实节点（浏览器端采集闭环验证）
+   - 退出按钮 / 关闭页签后连接断开
+3. grep 检查 changelog/AGENTS.md 已更新；`node --check` 校验新脚本语法
+4. 部署走 `npm run proxy` + `npm run deploy:cn`（代理桥流程已记录在 AGENTS.md）
+
+## 明确不做（本轮）
+
+- 私有圈子网络（PSK/relay）——用户意图是知名公有网络；私有路线若将来要做再单独立项
+- 成员间消息/文件传输——先跑通"入网 + 自动采集"主链路
+- Windows 小工具集成——未来对接同一 API 即可

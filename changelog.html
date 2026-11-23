@@ -43,6 +43,10 @@
       <ul>
         <li>新增“节点目录”页面（p2p.html）：为现有 P2P 网络（IPFS、Ethereum 等）提供开放的入口节点登记与查询，全站导航加入入口</li>
         <li>新增 /api/p2p/report、/api/p2p/networks、/api/p2p/networks/:network 接口：登记记录 7 天有效，重复登记自动刷新，含限流与每网络 100 节点上限</li>
+        <li>新增“加入网络（浏览器即节点）”功能：点击按钮即可通过 WSS 加入 IPFS 主网，页面即成员节点（client 模式），并自动把发现的节点地址上报到登记处</li>
+        <li>“加入网络”修复：域名解析改用国内可直连的阿里 DNS（原默认的 Cloudflare / Google DoH 国内不通），并修正节点配置与拨号方式；已在本机浏览器实测可加入 IPFS 主网</li>
+        <li>本地化 libp2p 浏览器节点程序（lib/libp2p.bundle.min.js，npm run build:p2p-lib 构建），按需加载不影响首屏</li>
+        <li>宽屏（≥1024px）布局优化：功能页加宽至 960px，网络目录/设备列表等卡片网格两列排布，长文阅读页保持较窄行宽</li>
         <li>表单样式支持 select 下拉框</li>
         <li>移除关于页“支持本站”打赏区块、收款二维码图片及相关样式</li>
       </ul>

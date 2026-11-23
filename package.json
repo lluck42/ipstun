@@ -4,9 +4,24 @@
   "private": true,
   "scripts": {
     "dev": "wrangler pages dev .",
-    "deploy": "wrangler pages deploy ."
+    "deploy": "wrangler pages deploy .",
+    "proxy": "http-proxy-to-socks -s 192.168.3.77:18080 -p 18081",
+    "deploy:cn": "cross-env HTTPS_PROXY=http://127.0.0.1:18081 HTTP_PROXY=http://127.0.0.1:18081 wrangler pages deploy .",
+    "build:p2p-lib": "esbuild lib/libp2p-entry.js --bundle --minify --format=iife --target=es2020 --outfile=lib/libp2p.bundle.min.js"
   },
   "devDependencies": {
+    "@chainsafe/libp2p-yamux": "^8.0.1",
+    "@libp2p/identify": "^4.1.18",
+    "@libp2p/kad-dht": "^16.4.9",
+    "@libp2p/noise": "^17.0.7",
+    "@libp2p/ping": "^3.1.17",
+    "@libp2p/websockets": "^10.1.25",
+    "@multiformats/dns": "^1.0.15",
+    "@multiformats/multiaddr": "^13.0.3",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.28.2",
+    "http-proxy-to-socks": "^1.1.4",
+    "libp2p": "^3.5.1",
     "wrangler": "^3.0.0"
   }
 }

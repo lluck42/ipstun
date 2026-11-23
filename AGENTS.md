@@ -29,7 +29,7 @@
 ├── style.css                         # 站点共用样式
 ├── script.js                         # 导航、公网 IP 检测、设备上报/查询、localStorage 设备管理、浏览器端持续同步与百度统计
 ├── images/                           # 静态图片目录（当前为空，仅含 .gitkeep 占位）
-├── lib/                              # 本地化的第三方 JS 库（当前为 qrcode.min.js）
+├── lib/                              # 本地化的第三方 JS 库（qrcode.min.js、libp2p.bundle.min.js 及其入口源码 libp2p-entry.js）
 ├── functions/                        # 边缘网络 Functions（后端接口）
 │   └── api/
 │       ├── myip.js                   # GET /api/myip：返回访问者当前公网 IP 与协议版本
@@ -60,6 +60,10 @@
 - 数据存储：分布式键值存储 KV（绑定变量名为 `user-device`），用于存储每个设备最新的 IPv6 地址。每个设备用 **device_key（UUID）** 作为 KV key，value 中保存设备名、IPv6/IPv4 和更新时间
 - P2P 节点目录：与设备记录共用同一 KV，key 为 `p2p:{网络slug}:{地址哈希}` 前缀键，value 为 `{network, address, note, updated_at}`，TTL 7 天；同一地址重复登记会幂等刷新有效期。设备记录是裸 UUID key，靠 `p2p:` 前缀区分，互不冲突
 - 前端本地数据：设备列表与 device_key 持久化在浏览器 `localStorage` 中，监听状态通过 `BroadcastChannel` 跨页面同步（导航栏圆点指示器）。新增页面如需共享设备数据请沿用这两个机制，不要再造存储
+- 浏览器即节点（p2p.html“加入网络”）：`lib/libp2p-entry.js` 经 `npm run build:p2p-lib`（esbuild IIFE）打包为 `lib/libp2p.bundle.min.js`（产物提交进仓库），页面点击按钮时按需加载。节点身份为 Ed25519 私钥（base64 protobuf），存 localStorage key `ipstun_p2p_peer_key`。通过官方 WSS bootstrap（地址在 libp2p-entry.js 内置，源为 go-ipfs-config 的 dnsaddr 解析结果）+ 本站登记处节点双层引导连入 IPFS 主网 DHT（clientMode），定期把 peerStore 发现的 wss 地址上报到 /api/p2p/report。**改动 libp2p 相关依赖或入口后必须重新构建 bundle 并一并提交**；官方 bootstrap 地址失效时需重新解析 `_dnsaddr.bootstrap.libp2p.io` TXT 记录更新内置列表
+- 入口文件必须按 **libp2p 3.x** 的配置项名书写：`connectionEncrypters`、`privateKey`、`services` 里要含 `ping`。旧写法（`connectionEncryption`、`peerId`）会被静默忽略，直到拨号时才报 `At least one protocol must be specified`。`node.dial()` 只接受 multiaddr 对象，页面必须经 `ipstunP2P.dial()` 封装调用；`peerStore.all()` 返回的 peer 对象用 `peer.id`
+- 国内网络事实（2026-11 实测）：官方 bootstrap（`*.bootstrap.ipni.io:4443`）**直连可达**（WebSocket 握手 101），但经局域网代理 `192.168.3.77` 不可达；libp2p 默认的 Cloudflare / Google DoH 国内直连不通。因此入口文件把域名解析器顺序定为 阿里 DNS JSON → Cloudflare → Google（`sorter` 返回 0 关闭随机排序），这是国内用户能加入网络的前提，勿改回默认。页面提示开着代理的用户把 `*.bootstrap.ipni.io` 设为直连
+- 已知局限：浏览器节点上报的 wss 地址基本只来自它连上的官方入口（其它 peer 只暴露 TCP / QUIC 地址，浏览器拨不了），所以自动采集目前对登记处的增量很小
 - 部署平台：边缘网络 Pages（静态资源 + Functions 一起部署）
 - 本地开发：`wrangler pages dev .`
 - 小工具：计划为 Windows 桌面程序，核心功能是“IPv6 地址监测 + 上报到本站后端”。技术栈待定（如 C# / Python / Go 等），开发完成后会把可执行文件或下载链接放到 `releases/`、`download/` 或独立页面，并在站点导航中更新入口。
@@ -88,6 +92,21 @@
 3. 部署成功后，静态页面和 `/api/*` 接口会同时上线。
 
 > 注意：`wrangler.toml` 中已填入真实的 KV namespace ID，部署前无需再替换。代码中通过 `env['user-device']` 访问 KV，因此边缘网络 Pages 里的 KV binding 名称也必须是 `user-device`。KV namespace ID 本身不是敏感信息，但不要把生产 API Token 写入仓库。
+
+### 国内网络环境部署（走局域网 SOCKS5 代理）
+
+本机直连 Cloudflare API 不通时（超时），需要经局域网代理 `192.168.3.77:18080`（SOCKS5）部署。wrangler 只支持 HTTP 代理，所以先起本地转换桥：
+
+1. 终端 A（保持运行）：
+   ```bash
+   npm run proxy     # 本地 18081 端口 HTTP 代理 -> 192.168.3.77:18080 SOCKS5
+   ```
+2. 终端 B：
+   ```bash
+   npm run deploy:cn
+   ```
+
+直连环境（或代理软件在本机时直接设 `HTTPS_PROXY`）仍可 `npm run deploy`。首次或凭据过期时需 `npx wrangler login` 重新授权（也要走代理）。另外注意：Windows 自带 curl 是 schannel 编译版，测试 HTTPS 接口时需加 `--ssl-no-revoke`，否则会因证书吊销检查离线而误报失败。
 
 后续如果开发了 Windows 小工具，建议把二进制文件或压缩包放到仓库的 `releases/` 或 `download/` 目录，并在站点中更新下载入口；`download.html` 目前用作相关软件推荐页。
 

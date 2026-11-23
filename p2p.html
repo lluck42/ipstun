@@ -58,6 +58,24 @@
     </section>
 
     <section>
+      <h2 class="section-title">加入网络（浏览器即节点）</h2>
+      <div class="card">
+        <p>点击按钮，当前页面就会通过 WSS 加入 <strong>IPFS 主网</strong>，成为网络的一个真实成员节点（client 模式：可发现节点、参与查询，不中转流量）。<strong>保持页面打开即保持在线，关闭页面自动退出。</strong></p>
+        <p>加入后，页面会定期把你发现的真实在线节点地址上报到本站登记处，帮后来的新成员更快入网。</p>
+        <div class="info-box">
+          <strong>提示：</strong>首次加入需加载约 600KB 的节点程序（存储于本站，仅加载一次）；你的节点身份（PeerID）保存在浏览器本地，刷新页面身份不变。加入需要直连 IPFS 官方入口（*.bootstrap.ipni.io）；如果你开着代理，请把该域名设为直连或临时关闭代理，部分代理节点无法访问这些入口。
+        </div>
+        <div class="form-actions" style="margin-top: 1rem;">
+          <button type="button" id="p2p-join-btn" class="btn btn-primary">加入 IPFS 网络</button>
+        </div>
+        <div id="p2p-join-result" class="query-result hidden" style="margin-top: 1rem;">
+          <h3>节点状态</h3>
+          <div id="p2p-join-result-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
       <h2 class="section-title">登记入口节点</h2>
       <div class="card">
         <form id="p2p-report-form">
@@ -346,6 +364,300 @@ curl -X POST https://www.ipstun.cn/api/p2p/report \
       }
 
       loadNetworks();
+    })();
+  </script>
+  <script>
+    // 加入网络（浏览器即节点）：按需加载 lib/libp2p.bundle.min.js，
+    // 通过 WSS 连入 IPFS 主网，并定期把发现的 wss 节点地址上报到本站登记处
+    (function () {
+      const ui = window.ipstunUi;
+
+      const PEER_KEY_STORAGE = 'ipstun_p2p_peer_key';
+      const JOIN_NETWORK = 'ipfs';
+      const REPORT_BATCH_MAX = 8;          // 每批最多上报数（接口限流 10 次/分钟，留余量）
+      const COLLECT_INTERVAL_MS = 2 * 60 * 1000;
+      const STATUS_INTERVAL_MS = 5 * 1000;
+      const BOOTSTRAP_TARGET = 2;          // 连上这么多入口就够引导了，其余交给 DHT 自己发现
+      const REGISTRY_BOOTSTRAP_MAX = 6;    // 最多从登记处补充多少个入口来尝试
+      const MAX_CONSECUTIVE_FAILURES = 3;  // 连续失败这么多次就放弃，避免逐个等超时
+      const JOIN_HINT = '若你开着代理，请把 *.bootstrap.ipni.io 设为直连，或临时关闭代理后重试。';
+
+      const joinBtn = document.getElementById('p2p-join-btn');
+      const joinResult = document.getElementById('p2p-join-result');
+      const joinResultContent = document.getElementById('p2p-join-result-content');
+
+      let node = null;
+      let joining = false;                 // 已创建节点，但还没连上任何入口
+      let statusTimer = null;
+      let collectTimer = null;
+      let bundlePromise = null;
+      const reportedAddrs = new Set();
+      const pendingAddrs = [];             // 已发现但还没上报成功的地址，留给下一轮
+      let reportedCount = 0;
+      let knownPeerCount = 0;
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+      }
+
+      function renderStatus(message) {
+        const connected = node ? node.getConnections().length : 0;
+        const label = !node ? '未加入' : (connected > 0 ? '在线' : (joining ? '连接中' : '已加入，暂无连接'));
+        const className = !node ? 'status-offline' : (connected > 0 ? 'status-online' : 'status-unknown');
+        const peerId = node ? node.peerId.toString() : '';
+        joinResult.classList.remove('hidden');
+        joinResultContent.innerHTML = `
+          <dl>
+            <dt>状态</dt><dd><span class="status-badge ${className}">${label}</span>${message ? ' ' + escapeHtml(message) : ''}</dd>
+            <dt>我的 PeerID</dt><dd>${escapeHtml(peerId)} ${peerId && ui ? ui.copyButtonHtml(peerId) : ''}</dd>
+            <dt>已连接节点</dt><dd>${connected}</dd>
+            <dt>已知节点</dt><dd>${knownPeerCount}</dd>
+            <dt>本页已上报</dt><dd>${reportedCount} 个新地址</dd>
+          </dl>
+        `;
+      }
+
+      function loadBundle() {
+        if (window.ipstunP2P) return Promise.resolve();
+        if (!bundlePromise) {
+          bundlePromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'lib/libp2p.bundle.min.js';
+            script.onload = () => resolve();
+            script.onerror = () => {
+              bundlePromise = null;
+              reject(new Error('节点程序加载失败'));
+            };
+            document.head.appendChild(script);
+          });
+        }
+        return bundlePromise;
+      }
+
+      async function getPrivateKeyBase64() {
+        let key = null;
+        try {
+          key = localStorage.getItem(PEER_KEY_STORAGE);
+        } catch (err) {
+          // localStorage 不可用则忽略
+        }
+        if (!key) {
+          key = await window.ipstunP2P.generateKeyBase64();
+          try {
+            localStorage.setItem(PEER_KEY_STORAGE, key);
+          } catch (err) {
+            // 忽略：下次刷新会生成新身份
+          }
+        }
+        return key;
+      }
+
+      // 引导源第一层：本站登记处已登记的 wss 节点（社区互助引导）
+      async function fetchRegistryBootstrap() {
+        try {
+          const response = await fetch(`/api/p2p/networks/${JOIN_NETWORK}`);
+          if (!response.ok) return [];
+          const data = await response.json();
+          return (data.nodes || [])
+            .map((n) => n.address)
+            .filter((a) => a.includes('/wss'));
+        } catch (err) {
+          return [];
+        }
+      }
+
+      // 依次尝试入口：连够数量、或连续失败太多次就停。返回连上的数量和最后一次的错误
+      async function dialBootstrap() {
+        const registry = await fetchRegistryBootstrap();
+        // 官方入口为权威引导源，登记处节点作为补充；去重后依次尝试
+        const candidates = [];
+        for (const addr of window.ipstunP2P.OFFICIAL_BOOTSTRAP_WSS.concat(registry.slice(0, REGISTRY_BOOTSTRAP_MAX))) {
+          if (!candidates.includes(addr)) {
+            candidates.push(addr);
+          }
+        }
+
+        let connected = 0;
+        let failures = 0;
+        let lastError = null;
+        for (const addr of candidates) {
+          if (connected >= BOOTSTRAP_TARGET || failures >= MAX_CONSECUTIVE_FAILURES) {
+            break;
+          }
+          try {
+            await window.ipstunP2P.dial(node, addr);
+            connected++;
+            failures = 0;
+            renderStatus(`已连上 ${connected} 个入口节点...`);
+          } catch (err) {
+            // 单个入口失败不影响其他
+            failures++;
+            lastError = err;
+          }
+        }
+        return { connected, lastError };
+      }
+
+      // 从 peerStore 收集新发现的 wss 地址（拼上对端 PeerID）并上报
+      async function collectAndReport() {
+        if (!node) return;
+
+        try {
+          const peers = await node.peerStore.all();
+          const ownId = node.peerId.toString();
+          knownPeerCount = 0;
+
+          for (const peer of peers) {
+            const peerIdStr = String(peer.id || '');
+            if (!peerIdStr || peerIdStr === ownId) continue;
+            knownPeerCount++;
+            for (const entry of peer.addresses || []) {
+              const addr = entry.multiaddr ? entry.multiaddr.toString() : '';
+              if (!addr || !addr.includes('/wss')) continue;
+              // peerStore 里的地址可能已经带 /p2p/ 段，避免重复拼接
+              const full = addr.includes('/p2p/') ? addr : `${addr}/p2p/${peerIdStr}`;
+              if (!reportedAddrs.has(full) && !pendingAddrs.includes(full)) {
+                pendingAddrs.push(full);
+              }
+            }
+          }
+        } catch (err) {
+          // 读 peerStore 失败时保留现有待上报队列，下一轮再试
+        }
+
+        let submitted = 0;
+        while (pendingAddrs.length > 0 && submitted < REPORT_BATCH_MAX) {
+          const addr = pendingAddrs[0];
+          let drop = false;
+          try {
+            const response = await fetch('/api/p2p/report', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ network: JOIN_NETWORK, address: addr })
+            });
+            if (response.ok) {
+              reportedAddrs.add(addr);
+              reportedCount++;
+              submitted++;
+              drop = true;
+            } else if (response.status !== 429) {
+              // 被接口拒绝的地址（如格式不合法）不再重试；429 则留在队列里等下一轮
+              reportedAddrs.add(addr);
+              drop = true;
+            }
+          } catch (err) {
+            // 网络出错，地址留在队列里等下一轮
+          }
+          if (!drop) {
+            break;
+          }
+          pendingAddrs.shift();
+        }
+        if (submitted > 0) {
+          renderStatus();
+        }
+      }
+
+      async function joinNetwork() {
+        joinBtn.disabled = true;
+        joinBtn.textContent = '加载节点程序中...';
+        renderStatus();
+
+        try {
+          await loadBundle();
+          joinBtn.textContent = '创建节点身份...';
+
+          const privateKeyBase64 = await getPrivateKeyBase64();
+          node = await window.ipstunP2P.createNode({ privateKeyBase64 });
+          joining = true;
+          renderStatus('正在连接入口节点...');
+
+          const { connected, lastError } = await dialBootstrap();
+          if (connected === 0) {
+            await stopNode();
+            joinBtn.disabled = false;
+            joinBtn.textContent = '加入 IPFS 网络';
+            const detail = lastError ? `（${String(lastError.message).slice(0, 200)}）` : '';
+            renderStatus(`加入失败：无法连接任何入口节点。${JOIN_HINT}${detail}`);
+            return;
+          }
+
+          joining = false;
+          joinBtn.textContent = '退出网络';
+          joinBtn.classList.remove('btn-primary');
+          joinBtn.classList.add('btn-secondary');
+          joinBtn.disabled = false;
+
+          statusTimer = setInterval(() => renderStatus(), STATUS_INTERVAL_MS);
+          collectTimer = setInterval(collectAndReport, COLLECT_INTERVAL_MS);
+          // 加入后先跑一轮采集
+          setTimeout(collectAndReport, 15 * 1000);
+          renderStatus();
+        } catch (err) {
+          await stopNode();
+          joinBtn.disabled = false;
+          joinBtn.textContent = '加入 IPFS 网络';
+          renderStatus(`加入出错：${err.message}`);
+        }
+      }
+
+      // 停止节点并清空本轮状态；无论成败都走这里，保证不留后台连接和定时器
+      async function stopNode() {
+        const current = node;
+        node = null;
+        joining = false;
+
+        if (statusTimer) {
+          clearInterval(statusTimer);
+          statusTimer = null;
+        }
+        if (collectTimer) {
+          clearInterval(collectTimer);
+          collectTimer = null;
+        }
+        pendingAddrs.length = 0;
+
+        if (current) {
+          try {
+            await current.stop();
+          } catch (err) {
+            // 忽略退出时的错误
+          }
+        }
+      }
+
+      async function leaveNetwork() {
+        joinBtn.disabled = true;
+        joinBtn.textContent = '正在退出...';
+        await stopNode();
+        joinBtn.disabled = false;
+        joinBtn.textContent = '加入 IPFS 网络';
+        joinBtn.classList.remove('btn-secondary');
+        joinBtn.classList.add('btn-primary');
+        joinResult.classList.add('hidden');
+      }
+
+      if (joinBtn) {
+        joinBtn.addEventListener('click', () => {
+          if (node) {
+            leaveNetwork();
+          } else {
+            joinNetwork();
+          }
+        });
+      }
+
+      window.addEventListener('beforeunload', () => {
+        if (node) {
+          try {
+            node.stop();
+          } catch (err) {
+            // 页面关闭时尽力断开即可
+          }
+        }
+      });
     })();
   </script>
 </body>

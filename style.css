@@ -666,6 +666,25 @@ a:hover {
   }
 }
 
+/* Wide desktop: functional pages get more room, long-form pages keep a readable measure */
+@media (min-width: 1024px) {
+  body {
+    max-width: 960px;
+  }
+
+  /* 网络目录 / 设备列表等卡片网格在宽屏下两列排布 */
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 技术原理 / 更新记录 / 关于等阅读页维持较窄行宽 */
+  .container.article {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .nav-links {
