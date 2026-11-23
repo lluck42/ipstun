@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>节点目录 | ipstun</title>
+  <meta name="description" content="P2P 网络引导节点目录：查询 IPFS、Ethereum 等现有 P2P 网络的社区登记入口节点地址，或登记你自己的节点帮助新成员快速入网。">
+  <meta name="keywords" content="P2P, 引导节点, bootstrap, IPFS, 节点目录, 入口地址">
+  <link rel="canonical" href="https://www.ipstun.cn/p2p.html">
+  <meta property="og:title" content="节点目录 | ipstun">
+  <meta property="og:description" content="查询现有 P2P 网络的社区登记入口节点地址，或登记你自己的节点帮助新成员快速入网。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.ipstun.cn/p2p.html">
+  <meta property="og:site_name" content="ipstun">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="nav-icon nav-logo-icon" href="devices.html" aria-label="我的设备" title="我的设备"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg><span class="monitor-dot" id="monitor-dot" aria-hidden="true"></span></a>
+      <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a class="active" href="p2p.html">节点目录</a></li>
+        <li><a href="how-it-works.html">技术原理</a></li>
+        <li><a href="download.html">相关软件</a></li>
+        <li><a href="changelog.html">更新记录</a></li>
+        <li><a href="about.html">关于</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>节点目录</h1>
+    <p>给现有 P2P 网络一个明确的入口地址，帮新成员快速入网。</p>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2 class="section-title">这是什么？</h2>
+      <div class="card">
+        <p>P2P 网络（IPFS、区块链、DHT 等）的新节点加入时，都需要至少一个<strong>当前在线的入口节点</strong>地址来引导入网。本页面就是一个开放的入口节点登记处：</p>
+        <p>已经在网络中的节点运维者，把节点地址登记到这里；想加入网络的新成员，直接查询并复制可用的入口地址填进客户端配置。</p>
+        <p>登记是<strong>临时的</strong>：每条记录 7 天有效，重复登记同一地址会自动刷新有效期，长期无人维护的地址会自动清理。</p>
+        <div class="info-box warning">
+          <strong>注意：</strong>节点地址由社区自由登记，本站不做审核。入口节点是日蚀攻击的潜在目标，请勿盲目信任单一来源的节点列表，重要网络请结合官方引导节点一起使用。
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">网络目录</h2>
+      <div id="networks-list" class="card-grid">
+        <p class="empty" style="grid-column: 1 / -1;">加载中...</p>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">登记入口节点</h2>
+      <div class="card">
+        <form id="p2p-report-form">
+          <div class="form-group">
+            <label for="p2p-network">所属网络</label>
+            <select id="p2p-network" name="network">
+              <option value="ipfs">IPFS</option>
+              <option value="ethereum">Ethereum</option>
+              <option value="bitcoin">Bitcoin</option>
+              <option value="bittorrent-dht">BitTorrent DHT</option>
+              <option value="libp2p">libp2p 自定义网络</option>
+              <option value="custom">自定义…</option>
+            </select>
+          </div>
+          <div class="form-group" id="p2p-custom-network-group" style="display: none;">
+            <label for="p2p-custom-network">自定义网络标识</label>
+            <input type="text" id="p2p-custom-network" placeholder="例如：my-dht（2~31 位小写字母/数字/连字符）">
+          </div>
+          <div class="form-group">
+            <label for="p2p-address">节点地址</label>
+            <input type="text" id="p2p-address" name="address" placeholder="例如：/ip4/1.2.3.4/tcp/4001/p2p/QmXxx… 或 1.2.3.4:4001" required>
+          </div>
+          <div class="form-group">
+            <label for="p2p-note">备注（可选）</label>
+            <input type="text" id="p2p-note" name="note" placeholder="例如：我的家庭节点" maxlength="50">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">登记节点</button>
+          </div>
+        </form>
+        <div id="p2p-report-message" class="query-result hidden" style="margin-top: 1rem;">
+          <div id="p2p-report-message-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">节点列表</h2>
+      <p id="p2p-nodes-placeholder" class="empty">点击上方网络卡片，查看该网络当前登记的入口节点。</p>
+      <div id="p2p-nodes-result" class="query-result hidden">
+        <h3 id="p2p-nodes-title"></h3>
+        <div class="form-actions" style="margin-bottom: 1rem;">
+          <button type="button" id="p2p-copy-all" class="btn btn-secondary btn-sm">复制全部地址</button>
+        </div>
+        <div id="p2p-nodes-list"></div>
+        <div id="p2p-nodes-all-block"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">接入接口</h2>
+      <div class="card">
+        <p>小工具和脚本可以直接调用下面的接口，把采集到的公共节点地址批量登记上来，或为新节点拉取入口地址列表：</p>
+        <div class="code-block"><pre><code># 查询有哪些网络存在登记节点
+curl https://www.ipstun.cn/api/p2p/networks
+
+# 查询 ipfs 网络的存活入口节点（JSON，按更新时间倒序）
+curl https://www.ipstun.cn/api/p2p/networks/ipfs
+
+# 登记一个入口节点（7 天有效，重复登记自动刷新）
+curl -X POST https://www.ipstun.cn/api/p2p/report \
+  -H "Content-Type: application/json" \
+  -d '{"network":"ipfs","address":"/ip4/1.2.3.4/tcp/4001/p2p/QmXxx","note":"我的节点"}'</code></pre></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>ipstun 科普教程 · 本站内容仅供学习交流</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    (function () {
+      const ui = window.ipstunUi;
+
+      // 内置知名网络目录（后端不限制网络名单，这里只负责展示与表单选项）
+      const KNOWN_NETWORKS = [
+        { slug: 'ipfs', name: 'IPFS', desc: '星际文件系统，地址为 multiaddr 格式，如 /ip4/…/tcp/4001/p2p/Qm…', docs: 'https://docs.ipfs.tech/how-to/modify-bootstrap-list/' },
+        { slug: 'ethereum', name: 'Ethereum', desc: '以太坊 P2P 网络，地址为 enode:// URL 或 host:port', docs: 'https://ethereum.org/zh-cn/developers/docs/nodes-and-clients/' },
+        { slug: 'bitcoin', name: 'Bitcoin', desc: '比特币网络，地址为 IP:端口 或域名:端口', docs: 'https://developer.bitcoin.org/' },
+        { slug: 'bittorrent-dht', name: 'BitTorrent DHT', desc: 'BT 分布式哈希表引导节点，地址为 IP:端口', docs: 'https://www.bittorrent.org/' },
+        { slug: 'libp2p', name: 'libp2p 自定义网络', desc: '基于 libp2p 的自定义 swarm，地址为 multiaddr 格式', docs: 'https://docs.libp2p.io/' }
+      ];
+
+      const networksList = document.getElementById('networks-list');
+      const reportForm = document.getElementById('p2p-report-form');
+      const networkSelect = document.getElementById('p2p-network');
+      const customNetworkGroup = document.getElementById('p2p-custom-network-group');
+      const customNetworkInput = document.getElementById('p2p-custom-network');
+      const reportMessage = document.getElementById('p2p-report-message');
+      const reportMessageContent = document.getElementById('p2p-report-message-content');
+      const nodesPlaceholder = document.getElementById('p2p-nodes-placeholder');
+      const nodesResult = document.getElementById('p2p-nodes-result');
+      const nodesTitle = document.getElementById('p2p-nodes-title');
+      const nodesListEl = document.getElementById('p2p-nodes-list');
+      const nodesAllBlock = document.getElementById('p2p-nodes-all-block');
+      const copyAllBtn = document.getElementById('p2p-copy-all');
+
+      let currentNetwork = null;
+      let currentAddresses = [];
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+      }
+
+      function formatTime(timestamp) {
+        if (!timestamp) return '未知';
+        const diff = Date.now() - timestamp;
+        const minutes = Math.floor(diff / 60000);
+        if (minutes < 1) return '刚刚';
+        if (minutes < 60) return `${minutes} 分钟前`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} 小时前`;
+        const days = Math.floor(hours / 24);
+        return `${days} 天前`;
+      }
+
+      function showReportMessage(text, isError) {
+        reportMessage.classList.remove('hidden');
+        reportMessageContent.innerHTML = isError
+          ? `<p class="error">${escapeHtml(text)}</p>`
+          : `<p class="empty">${escapeHtml(text)}</p>`;
+      }
+
+      async function loadNetworks() {
+        networksList.innerHTML = '<p class="empty" style="grid-column: 1 / -1;">加载中...</p>';
+
+        try {
+          const response = await fetch('/api/p2p/networks');
+          if (!response.ok) {
+            throw new Error(`状态码 ${response.status}`);
+          }
+          const data = await response.json();
+          renderNetworks(data.networks || []);
+        } catch (err) {
+          networksList.innerHTML = `<p class="error" style="grid-column: 1 / -1;">网络目录加载失败：${escapeHtml(err.message)}</p>`;
+        }
+      }
+
+      function renderNetworks(networks) {
+        const counts = new Map(networks.map((item) => [item.network, item.count]));
+
+        const entries = [];
+        for (const known of KNOWN_NETWORKS) {
+          entries.push({ ...known, count: counts.get(known.slug) || 0 });
+          counts.delete(known.slug);
+        }
+        // 非内置的自定义网络排在后面
+        for (const [slug, count] of counts) {
+          entries.push({ slug, name: slug, desc: '社区自定义网络', docs: '', count });
+        }
+
+        if (entries.length === 0) {
+          networksList.innerHTML = '<p class="empty" style="grid-column: 1 / -1;">暂无登记节点。成为第一个登记的人吧。</p>';
+          return;
+        }
+
+        networksList.innerHTML = entries.map((entry) => `
+          <div class="card network-card" data-slug="${escapeHtml(entry.slug)}" style="cursor: pointer;">
+            <h3>${escapeHtml(entry.name)} <span class="empty">${entry.count} 个节点</span></h3>
+            <p>${escapeHtml(entry.desc)}</p>
+            ${entry.docs ? `<p><a href="${escapeHtml(entry.docs)}" target="_blank" rel="noopener noreferrer">官方节点文档</a></p>` : ''}
+          </div>
+        `).join('');
+
+        networksList.querySelectorAll('.network-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            loadNetwork(card.dataset.slug);
+          });
+        });
+      }
+
+      async function loadNetwork(slug, bypassCache) {
+        currentNetwork = slug;
+        nodesPlaceholder.style.display = 'none';
+        nodesResult.classList.remove('hidden');
+        nodesTitle.textContent = `${slug} 的入口节点`;
+        nodesListEl.innerHTML = '<p class="empty">查询中...</p>';
+        nodesAllBlock.innerHTML = '';
+
+        try {
+          // 接口带 60 秒缓存；登记成功后立即刷新时绕过，保证自己能看到刚登记的节点
+          const response = await fetch(`/api/p2p/networks/${encodeURIComponent(slug)}`, bypassCache ? { cache: 'reload' } : {});
+          if (!response.ok) {
+            throw new Error(`状态码 ${response.status}`);
+          }
+          const data = await response.json();
+          currentAddresses = (data.nodes || []).map((node) => node.address);
+          renderNodes(data.nodes || []);
+        } catch (err) {
+          nodesListEl.innerHTML = `<p class="error">查询出错：${escapeHtml(err.message)}</p>`;
+        }
+      }
+
+      function renderNodes(nodes) {
+        if (nodes.length === 0) {
+          nodesListEl.innerHTML = '<p class="empty">该网络暂无登记节点。如果你正在运行该网络的节点，欢迎在上方登记。</p>';
+          return;
+        }
+
+        nodesListEl.innerHTML = nodes.map((node) => {
+          const stale = Date.now() - node.updated_at > 24 * 60 * 60 * 1000;
+          const note = node.note ? `备注：${escapeHtml(node.note)} · ` : '';
+          return `
+            <div class="card" ${stale ? 'style="opacity: 0.65;"' : ''}>
+              <p><code style="word-break: break-all;">${escapeHtml(node.address)}</code> ${ui ? ui.copyButtonHtml(node.address) : ''}</p>
+              <p class="empty">${note}更新于 ${formatTime(node.updated_at)}</p>
+            </div>
+          `;
+        }).join('');
+
+        nodesAllBlock.innerHTML = `
+          <h3 style="margin-top: 1.5rem;">全部地址（每行一个）</h3>
+          <div class="code-block"><pre><code>${escapeHtml(currentAddresses.join('\n'))}</code></pre></div>
+        `;
+      }
+
+      if (copyAllBtn) {
+        copyAllBtn.addEventListener('click', async () => {
+          if (currentAddresses.length === 0) return;
+          const original = copyAllBtn.textContent;
+          try {
+            await navigator.clipboard.writeText(currentAddresses.join('\n'));
+            copyAllBtn.textContent = '已复制';
+          } catch (err) {
+            copyAllBtn.textContent = '复制失败';
+          }
+          setTimeout(() => {
+            copyAllBtn.textContent = original;
+          }, 1500);
+        });
+      }
+
+      if (networkSelect) {
+        networkSelect.addEventListener('change', () => {
+          customNetworkGroup.style.display = networkSelect.value === 'custom' ? '' : 'none';
+        });
+      }
+
+      if (reportForm) {
+        reportForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          let network = networkSelect.value;
+          if (network === 'custom') {
+            network = customNetworkInput.value.trim().toLowerCase();
+            if (!/^[a-z0-9][a-z0-9-]{1,30}$/.test(network)) {
+              showReportMessage('自定义网络标识需为 2~31 位小写字母、数字或连字符', true);
+              return;
+            }
+          }
+
+          const address = reportForm.querySelector('[name="address"]').value.trim();
+          if (!address) {
+            showReportMessage('节点地址不能为空', true);
+            return;
+          }
+
+          const note = reportForm.querySelector('[name="note"]').value.trim();
+
+          try {
+            const response = await fetch('/api/p2p/report', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ network, address, note })
+            });
+            if (!response.ok) {
+              const errData = await response.json().catch(() => ({}));
+              throw new Error(errData.error || `登记失败（状态码 ${response.status}）`);
+            }
+
+            reportForm.reset();
+            customNetworkGroup.style.display = 'none';
+            showReportMessage('登记成功！记录 7 天有效，定期重复登记可刷新有效期。', false);
+            loadNetworks();
+            if (currentNetwork === network) {
+              loadNetwork(network, true);
+            }
+          } catch (err) {
+            showReportMessage(`登记出错：${err.message}`, true);
+          }
+        });
+      }
+
+      loadNetworks();
+    })();
+  </script>
+</body>
+</html>

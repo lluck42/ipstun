@@ -9,6 +9,7 @@
 - **本机 IP 检测**：一键检测你当前访问互联网使用的 IP 是 IPv4 还是 IPv6。
 - **设备 IP 实时同步**：通过 device_key 把设备 IP 上报到云端，供其他设备查询。
 - **设备 IP 查询**：通过 device_key 查询已同步设备的最新 IPv6 / IPv4，也支持二维码扫码查询。
+- **P2P 节点目录**：为 IPFS 等现有 P2P 网络登记/查询社区入口节点地址，帮新成员快速入网。
 - **浏览器端持续同步**：保持首页打开，可每 2 分钟自动检测并上报本机 IP（适合临时使用）。
 - **IPv6 同步接口**：配合即将发布的小工具，在家宽 IPv6 前缀变动时自动上报最新地址。
 - **更新记录**：独立的 changelog 页面，记录每次功能迭代与接口变更。
@@ -21,7 +22,10 @@
   - `GET /api/myip`：返回访问者当前公网 IP 与协议版本。
   - `POST /api/report`：凭 device_key 上报设备 IP。
   - `GET /api/devices/:device_key`：查询设备最新 IP。
-- 数据存储：分布式键值存储 KV（绑定名 `user-device`），以 device_key（UUID）为 key。
+  - `POST /api/p2p/report`：登记 P2P 网络入口节点（7 天有效，重复登记自动刷新）。
+  - `GET /api/p2p/networks`：列出有存活登记节点的网络。
+  - `GET /api/p2p/networks/:network`：查询某网络全部存活入口节点。
+- 数据存储：分布式键值存储 KV（绑定名 `user-device`），设备记录以 device_key（UUID）为 key，P2P 节点记录以 `p2p:` 前缀键存储。
 
 ## 安装与运行
 

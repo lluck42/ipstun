@@ -23,6 +23,7 @@
       <button class="nav-toggle" aria-label="打开导航" aria-expanded="false">☰</button>
       <ul class="nav-links">
         <li><a href="index.html">首页</a></li>
+        <li><a href="p2p.html">节点目录</a></li>
         <li><a href="how-it-works.html">技术原理</a></li>
         <li><a href="download.html">相关软件</a></li>
         <li><a class="active" href="changelog.html">更新记录</a></li>
@@ -37,6 +38,15 @@
   </header>
 
   <main class="container article">
+    <section>
+      <h2>2026-11-23</h2>
+      <ul>
+        <li>新增“节点目录”页面（p2p.html）：为现有 P2P 网络（IPFS、Ethereum 等）提供开放的入口节点登记与查询，全站导航加入入口</li>
+        <li>新增 /api/p2p/report、/api/p2p/networks、/api/p2p/networks/:network 接口：登记记录 7 天有效，重复登记自动刷新，含限流与每网络 100 节点上限</li>
+        <li>表单样式支持 select 下拉框</li>
+        <li>移除关于页“支持本站”打赏区块、收款二维码图片及相关样式</li>
+      </ul>
+    </section>
     <section>
       <h2>2026-09-15</h2>
       <ul>
